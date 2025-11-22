@@ -117,9 +117,105 @@ The INC module demonstrates the file upload pattern:
 
 **Cleanup**: Deleting an INC or photo should also delete the physical file from `uploads/` directory (see `inc.service.ts`)
 
+## Specialized Agents
+
+Q-Manager has specialized agents that automate common development tasks. **Always prefer using these agents over manual implementation** for consistency and speed.
+
+### Available Agents
+
+#### 1. Module Generator Agent (`module-generator`)
+
+**Use for**: Creating new business entity modules (Products, Suppliers, Orders, etc.)
+
+**What it does**:
+- Generates complete full-stack CRUD module (backend + frontend)
+- Creates Prisma model and migration
+- Generates DTOs with validation
+- Creates NestJS controller and service with guards
+- Adds permissions to seed
+- Creates React pages (List, Create, Edit, View)
+- Adds routes and sidebar menu item
+- Generates unit tests
+
+**Example**:
+```typescript
+// Just describe your module requirements:
+"Create a Products module with fields: code (string, unique), description (string),
+price (float), and stock (integer, default 0)"
+
+// The agent generates everything in ~5 minutes vs 2-3 hours manually
+```
+
+**When to use**: Every time you need a new module. This is the **preferred method**.
+
+#### 2. Test Generator Agent (`test-generator`)
+
+**Use for**: Generating comprehensive test suites
+
+**What it does**:
+- Creates unit tests for services
+- Generates integration tests for controllers
+- Creates E2E tests for API flows
+- Generates React component tests
+- Creates test fixtures and mocks
+- Ensures 80%+ coverage
+
+**Example**:
+```typescript
+// After implementing a feature:
+"I've finished implementing the OrderService. Generate comprehensive tests."
+
+// The agent creates complete test suite with all edge cases
+```
+
+**When to use**: After implementing any new feature, before deployment, when coverage is low.
+
+#### 3. API Documentation Agent (`api-documenter`)
+
+**Use for**: Maintaining API documentation
+
+**What it does**:
+- Parses Swagger decorators
+- Generates comprehensive endpoint docs
+- Creates OpenAPI 3.0 spec
+- Generates Postman/Insomnia collections
+- Detects documentation drift
+- Validates all endpoints are documented
+
+**Example**:
+```typescript
+// Before release:
+"We're releasing v1.2 tomorrow. Update all API documentation."
+
+// The agent scans codebase and generates complete, up-to-date docs
+```
+
+**When to use**: After API changes, before releases, for external integrations.
+
+---
+
 ## Adding New Modules
 
-### 1. Backend Module Creation
+### Recommended: Use Module Generator Agent ⭐
+
+**This is the preferred method** for creating new modules:
+
+1. Describe your module requirements to Claude
+2. The `module-generator` agent will create everything automatically
+3. Review and test the generated code
+4. Run migrations and seed
+
+**Benefits**:
+- 95% faster (5 min vs 2-3 hours)
+- Consistent with project patterns
+- Includes tests automatically
+- Zero mistakes in boilerplate
+
+### Manual Method (For Reference Only)
+
+If you need to create a module manually for learning or special cases:
+
+#### 1. Backend Module Creation
 
 ```bash
 cd backend
@@ -357,6 +453,36 @@ npx prisma migrate dev
 - Check `MAX_FILE_SIZE` in `.env`
 - Verify `UPLOAD_PATH` is writable
 
+## Development Workflow Best Practices
+
+### For New Features
+1. **Use module-generator agent** to scaffold the module
+2. **Implement business logic** specific to your feature
+3. **Use test-generator agent** to create comprehensive tests
+4. **Use api-documenter agent** to update documentation
+5. Test manually and review generated code
+6. Commit changes
+
+### For Bug Fixes
+1. **Use test-generator agent** to create regression tests first
+2. Fix the bug
+3. Verify tests pass
+4. Commit fix with tests
+
+### For API Changes
+1. Implement the changes
+2. **Use test-generator agent** to update/create tests
+3. **Use api-documenter agent** to update docs
+4. Review Swagger documentation at `/api/docs`
+5. Commit changes
+
+### Before Releases
+1. **Use test-generator agent** to ensure coverage >80%
+2. **Use api-documenter agent** to validate all docs current
+3. Run full test suite
+4. Review changelog
+5. Deploy
+
 ## Important Constraints
 
 - **Never store sensitive data in Git**: The `.env` file is gitignored
@@ -364,3 +490,4 @@ npx prisma migrate dev
 - **Permission Checks**: All protected routes must use both `JwtAuthGuard` and `PermissionsGuard`
 - **File Cleanup**: When deleting records with file uploads, ensure physical files are also deleted
 - **Token Expiration**: Access tokens expire in 15 minutes by design for security
+- **Use Specialized Agents**: Always prefer agents over manual implementation for modules, tests, and documentation
