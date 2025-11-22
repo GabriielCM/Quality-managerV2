@@ -14,6 +14,12 @@ async function main() {
     { code: 'inc.update', name: 'Editar INC', module: 'inc', description: 'Permite editar registros de INC' },
     { code: 'inc.delete', name: 'Deletar INC', module: 'inc', description: 'Permite deletar registros de INC' },
 
+    // Permissões de Fornecedores
+    { code: 'fornecedores.create', name: 'Criar Fornecedores', module: 'fornecedores', description: 'Permite criar novos fornecedores' },
+    { code: 'fornecedores.read', name: 'Visualizar Fornecedores', module: 'fornecedores', description: 'Permite visualizar fornecedores' },
+    { code: 'fornecedores.update', name: 'Atualizar Fornecedores', module: 'fornecedores', description: 'Permite atualizar fornecedores' },
+    { code: 'fornecedores.delete', name: 'Deletar Fornecedores', module: 'fornecedores', description: 'Permite deletar fornecedores' },
+
     // Permissões de Usuários
     { code: 'users.create', name: 'Criar Usuário', module: 'users', description: 'Permite criar novos usuários' },
     { code: 'users.read', name: 'Visualizar Usuários', module: 'users', description: 'Permite visualizar usuários' },

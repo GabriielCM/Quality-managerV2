@@ -21,6 +21,7 @@ export class IncService {
       quantidadeRecebida: createIncDto.quantidadeRecebida,
       quantidadeComDefeito: createIncDto.quantidadeComDefeito,
       descricaoNaoConformidade: createIncDto.descricaoNaoConformidade,
+      fornecedorId: createIncDto.fornecedorId,
       status: 'Em análise',
       criadoPorId,
     };
@@ -39,6 +40,7 @@ export class IncService {
             email: true,
           },
         },
+        fornecedor: true,
         fotos: true,
       },
     });
@@ -87,6 +89,7 @@ export class IncService {
             email: true,
           },
         },
+        fornecedor: true,
         fotos: true,
       },
       orderBy: {
@@ -106,6 +109,7 @@ export class IncService {
             email: true,
           },
         },
+        fornecedor: true,
         fotos: true,
       },
     });
@@ -132,6 +136,7 @@ export class IncService {
       quantidadeRecebida: updateIncDto.quantidadeRecebida,
       quantidadeComDefeito: updateIncDto.quantidadeComDefeito,
       descricaoNaoConformidade: updateIncDto.descricaoNaoConformidade,
+      fornecedorId: updateIncDto.fornecedorId,
       status: updateIncDto.status,
     };
 

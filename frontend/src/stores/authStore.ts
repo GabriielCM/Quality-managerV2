@@ -72,7 +72,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     try {
       // Tentar fazer uma requisição simples para validar o token
-      const response = await api.get('/permissions/modules');
+      await api.get('/permissions/modules');
 
       // Se chegou aqui, o token é válido
       // Vamos pegar os dados do usuário do payload do JWT

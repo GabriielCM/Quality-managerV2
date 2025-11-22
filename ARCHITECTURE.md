@@ -148,8 +148,11 @@ Inc {
   um: string (UN, KG, M...)
   quantidadeRecebida: number
   quantidadeComDefeito: number
+  descricaoNaoConformidade: string (opcional)
   status: string (Em análise, Aprovado, Rejeitado)
   criadoPorId: string
+  fornecedorId: string (opcional)
+  fornecedor: Fornecedor (relação)
   fotos: IncFoto[]
 }
 
@@ -160,6 +163,43 @@ IncFoto {
   filename: string
 }
 ```
+
+### 5. Módulo Fornecedores (Suppliers)
+
+**Responsabilidades:**
+- Cadastro de fornecedores
+- Validação de CNPJ
+- Gestão de dados de fornecedores
+- Filtros e busca
+
+**Estrutura:**
+```typescript
+Fornecedor {
+  id: string
+  cnpj: string (unique, 14 dígitos sem máscara)
+  razaoSocial: string
+  codigoLogix: string
+  createdAt: DateTime
+  updatedAt: DateTime
+  incs: Inc[]
+}
+```
+
+**Validações:**
+- CNPJ: Exatamente 14 dígitos numéricos
+- CNPJ único no sistema
+- Razão Social obrigatória
+- Código Logix obrigatório
+
+**Frontend:**
+- Máscara CNPJ: XX.XXX.XXX/XXXX-XX
+- Armazenamento sem máscara no backend
+- Formatação automática na exibição
+
+**Relacionamento com INC:**
+- Um fornecedor pode ter múltiplas INCs
+- Uma INC pode ter um fornecedor (opcional)
+- Relacionamento estabelecido via `fornecedorId` na tabela Inc
 
 ## Fluxo de Dados
 
@@ -211,10 +251,15 @@ modules/
 │   ├── users.controller.ts
 │   ├── users.service.ts
 │   └── dto/
-└── inc/
-    ├── inc.module.ts
-    ├── inc.controller.ts
-    ├── inc.service.ts
+├── inc/
+│   ├── inc.module.ts
+│   ├── inc.controller.ts
+│   ├── inc.service.ts
+│   └── dto/
+└── fornecedores/
+    ├── fornecedores.module.ts
+    ├── fornecedores.controller.ts
+    ├── fornecedores.service.ts
     └── dto/
 ```
 
@@ -251,11 +296,17 @@ pages/
 │   ├── UsersPage.tsx
 │   ├── UserModal.tsx
 │   └── PermissionsModal.tsx
-└── inc/
-    ├── IncListPage.tsx
-    ├── IncCreatePage.tsx
-    ├── IncEditPage.tsx
-    └── IncViewPage.tsx
+├── inc/
+│   ├── IncListPage.tsx
+│   ├── IncCreatePage.tsx
+│   ├── IncEditPage.tsx
+│   └── IncViewPage.tsx
+└── fornecedores/
+    ├── FornecedoresListPage.tsx
+    ├── FornecedorCreatePage.tsx
+    ├── FornecedorEditPage.tsx
+    ├── FornecedorViewPage.tsx
+    └── FornecedorForm.tsx
 ```
 
 **2. State Management (Zustand)**
@@ -295,8 +346,11 @@ authStore {
 
 ```prisma
 User ──┬─→ UserPermission ──→ Permission
-       └─→ RefreshToken
-       └─→ Inc ──→ IncFoto
+       ├─→ RefreshToken
+       └─→ Inc ──┬─→ IncFoto
+                 └─→ Fornecedor
+
+Fornecedor ──→ Inc (1:N)
 ```
 
 **Relacionamentos:**
@@ -305,11 +359,14 @@ User ──┬─→ UserPermission ──→ Permission
 - User → RefreshToken (1:N)
 - User → Inc (1:N)
 - Inc → IncFoto (1:N)
+- Inc → Fornecedor (N:1, opcional)
+- Fornecedor → Inc (1:N)
 
 **Índices:**
 - Email (unique)
 - Permission Code (unique)
 - RefreshToken Token (unique)
+- CNPJ (unique)
 
 ## Segurança
 

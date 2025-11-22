@@ -76,12 +76,14 @@ model Inc {
   descricaoNaoConformidade String?
   status                   String   @default("Em análise") // "Em análise", "Aprovado", "Rejeitado"
   criadoPorId              String
+  fornecedorId             String
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 
   // Relacionamentos
-  criadoPor User      @relation(fields: [criadoPorId], references: [id])
-  fotos     IncFoto[]
+  criadoPor  User        @relation(fields: [criadoPorId], references: [id])
+  fornecedor Fornecedor  @relation(fields: [fornecedorId], references: [id])
+  fotos      IncFoto[]
 
   @@map("incs")
 }
@@ -96,4 +98,19 @@ model IncFoto {
   inc Inc @relation(fields: [incId], references: [id], onDelete: Cascade)
 
   @@map("inc_fotos")
+}
+
+// Módulo Fornecedores
+model Fornecedor {
+  id           String   @id @default(uuid())
+  cnpj         String   @unique // Armazenado sem máscara (apenas números)
+  razaoSocial  String
+  codigoLogix  String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relacionamentos
+  incs Inc[]
+
+  @@map("fornecedores")
 }

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '@/lib/api';
+import { fornecedoresApi } from '@/services/api/fornecedores';
+import { Fornecedor } from '@/types/fornecedor';
 import toast from 'react-hot-toast';
 import { ArrowLeft, Upload, X, Trash2 } from 'lucide-react';
 
@@ -13,6 +15,8 @@ interface Inc {
   quantidadeRecebida: number;
   quantidadeComDefeito: number;
   descricaoNaoConformidade?: string;
+  fornecedorId: string;
+  fornecedor: Fornecedor;
   status: string;
   fotos: {
     id: string;
@@ -27,6 +31,7 @@ export default function IncEditPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [inc, setInc] = useState<Inc | null>(null);
+  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
   const [formData, setFormData] = useState({
     ar: '',
     nfeNumero: '',
@@ -34,6 +39,7 @@ export default function IncEditPage() {
     quantidadeRecebida: '',
     quantidadeComDefeito: '',
     descricaoNaoConformidade: '',
+    fornecedorId: '',
     status: 'Em análise',
   });
   const [nfeFile, setNfeFile] = useState<File | null>(null);
@@ -41,7 +47,18 @@ export default function IncEditPage() {
 
   useEffect(() => {
     loadInc();
+    loadFornecedores();
   }, [id]);
+
+  const loadFornecedores = async () => {
+    try {
+      const data = await fornecedoresApi.findAll();
+      setFornecedores(data);
+    } catch (error: any) {
+      toast.error('Erro ao carregar fornecedores');
+      console.error(error);
+    }
+  };
 
   const loadInc = async () => {
     try {
@@ -55,6 +72,7 @@ export default function IncEditPage() {
         quantidadeRecebida: data.quantidadeRecebida.toString(),
         quantidadeComDefeito: data.quantidadeComDefeito.toString(),
         descricaoNaoConformidade: data.descricaoNaoConformidade || '',
+        fornecedorId: data.fornecedorId,
         status: data.status,
       });
     } catch (error: any) {
@@ -104,6 +122,7 @@ export default function IncEditPage() {
       data.append('um', formData.um);
       data.append('quantidadeRecebida', formData.quantidadeRecebida);
       data.append('quantidadeComDefeito', formData.quantidadeComDefeito);
+      data.append('fornecedorId', formData.fornecedorId);
       if (formData.descricaoNaoConformidade) {
         data.append('descricaoNaoConformidade', formData.descricaoNaoConformidade);
       }
@@ -252,6 +271,26 @@ export default function IncEditPage() {
               className="input"
               required
             />
+          </div>
+
+          <div className="md:col-span-2">
+            <label htmlFor="fornecedorId" className="label">
+              Fornecedor <span className="text-red-500">*</span>
+            </label>
+            <select
+              id="fornecedorId"
+              value={formData.fornecedorId}
+              onChange={(e) => setFormData({ ...formData, fornecedorId: e.target.value })}
+              className="input"
+              required
+            >
+              <option value="">Selecione um fornecedor</option>
+              {fornecedores.map((fornecedor) => (
+                <option key={fornecedor.id} value={fornecedor.id}>
+                  {fornecedor.razaoSocial} - {fornecedor.cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="md:col-span-2">

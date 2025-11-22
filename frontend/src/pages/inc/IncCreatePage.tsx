@@ -1,12 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '@/lib/api';
+import { fornecedoresApi } from '@/services/api/fornecedores';
+import { Fornecedor } from '@/types/fornecedor';
 import toast from 'react-hot-toast';
 import { ArrowLeft, Upload, X } from 'lucide-react';
 
 export default function IncCreatePage() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
   const [formData, setFormData] = useState({
     ar: '',
     nfeNumero: '',
@@ -14,9 +17,24 @@ export default function IncCreatePage() {
     quantidadeRecebida: '',
     quantidadeComDefeito: '',
     descricaoNaoConformidade: '',
+    fornecedorId: '',
   });
   const [nfeFile, setNfeFile] = useState<File | null>(null);
   const [fotos, setFotos] = useState<File[]>([]);
+
+  useEffect(() => {
+    loadFornecedores();
+  }, []);
+
+  const loadFornecedores = async () => {
+    try {
+      const data = await fornecedoresApi.findAll();
+      setFornecedores(data);
+    } catch (error: any) {
+      toast.error('Erro ao carregar fornecedores');
+      console.error(error);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -45,6 +63,7 @@ export default function IncCreatePage() {
       data.append('um', formData.um);
       data.append('quantidadeRecebida', formData.quantidadeRecebida);
       data.append('quantidadeComDefeito', formData.quantidadeComDefeito);
+      data.append('fornecedorId', formData.fornecedorId);
       if (formData.descricaoNaoConformidade) {
         data.append('descricaoNaoConformidade', formData.descricaoNaoConformidade);
       }
@@ -167,6 +186,26 @@ export default function IncCreatePage() {
               className="input"
               required
             />
+          </div>
+
+          <div className="md:col-span-2">
+            <label htmlFor="fornecedorId" className="label">
+              Fornecedor <span className="text-red-500">*</span>
+            </label>
+            <select
+              id="fornecedorId"
+              value={formData.fornecedorId}
+              onChange={(e) => setFormData({ ...formData, fornecedorId: e.target.value })}
+              className="input"
+              required
+            >
+              <option value="">Selecione um fornecedor</option>
+              {fornecedores.map((fornecedor) => (
+                <option key={fornecedor.id} value={fornecedor.id}>
+                  {fornecedor.razaoSocial} - {fornecedor.cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="md:col-span-2">

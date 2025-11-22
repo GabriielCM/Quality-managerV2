@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '@/lib/api';
+import { Fornecedor } from '@/types/fornecedor';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Edit, FileText, Package, Calendar, User } from 'lucide-react';
+import { ArrowLeft, Edit, FileText, Package, Calendar, User, Building2 } from 'lucide-react';
 
 interface Inc {
   id: string;
@@ -15,6 +16,7 @@ interface Inc {
   quantidadeComDefeito: number;
   descricaoNaoConformidade?: string;
   status: string;
+  fornecedor: Fornecedor;
   criadoPor: {
     id: string;
     nome: string;
@@ -180,6 +182,38 @@ export default function IncViewPage() {
                 <p className="text-base font-semibold text-gray-900">
                   {new Date(inc.createdAt).toLocaleString('pt-BR')}
                 </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Fornecedor */}
+        <div className="card">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Fornecedor</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex items-start space-x-3">
+              <Building2 className="w-5 h-5 text-gray-400 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-gray-500">Razão Social</p>
+                <p className="text-base font-semibold text-gray-900">{inc.fornecedor.razaoSocial}</p>
+              </div>
+            </div>
+
+            <div className="flex items-start space-x-3">
+              <FileText className="w-5 h-5 text-gray-400 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-gray-500">CNPJ</p>
+                <p className="text-base font-semibold text-gray-900">
+                  {inc.fornecedor.cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start space-x-3">
+              <Package className="w-5 h-5 text-gray-400 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-gray-500">Código Logix</p>
+                <p className="text-base font-semibold text-gray-900">{inc.fornecedor.codigoLogix}</p>
               </div>
             </div>
           </div>

@@ -10,6 +10,10 @@ import IncListPage from '@/pages/inc/IncListPage';
 import IncCreatePage from '@/pages/inc/IncCreatePage';
 import IncEditPage from '@/pages/inc/IncEditPage';
 import IncViewPage from '@/pages/inc/IncViewPage';
+import FornecedoresListPage from '@/pages/fornecedores/FornecedoresListPage';
+import FornecedorCreatePage from '@/pages/fornecedores/FornecedorCreatePage';
+import FornecedorEditPage from '@/pages/fornecedores/FornecedorEditPage';
+import FornecedorViewPage from '@/pages/fornecedores/FornecedorViewPage';
 
 function App() {
   const { checkAuth, isLoading } = useAuthStore();
@@ -51,6 +55,14 @@ function App() {
             <Route path="create" element={<IncCreatePage />} />
             <Route path=":id" element={<IncViewPage />} />
             <Route path=":id/edit" element={<IncEditPage />} />
+          </Route>
+
+          {/* Fornecedores */}
+          <Route path="fornecedores">
+            <Route index element={<FornecedoresListPage />} />
+            <Route path="create" element={<FornecedorCreatePage />} />
+            <Route path=":id" element={<FornecedorViewPage />} />
+            <Route path=":id/edit" element={<FornecedorEditPage />} />
           </Route>
         </Route>
 

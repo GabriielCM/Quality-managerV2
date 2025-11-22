@@ -1,5 +1,5 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
-import { IsInt, IsNotEmpty, IsString, IsNumber, IsOptional, IsIn } from 'class-validator';
+import { IsInt, IsNotEmpty, IsString, IsNumber, IsOptional, IsIn, IsUUID } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateIncDto {
@@ -35,6 +35,11 @@ export class CreateIncDto {
   @IsString()
   @IsOptional()
   descricaoNaoConformidade?: string;
+
+  @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174000', description: 'ID do fornecedor' })
+  @IsUUID()
+  @IsNotEmpty({ message: 'Fornecedor é obrigatório' })
+  fornecedorId: string;
 
   @ApiProperty({ type: 'string', format: 'binary', required: false })
   nfeFile?: any;
