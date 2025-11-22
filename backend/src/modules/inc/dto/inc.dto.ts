@@ -31,6 +31,11 @@ export class CreateIncDto {
   @Type(() => Number)
   quantidadeComDefeito: number;
 
+  @ApiProperty({ example: 'Material recebido com avarias na embalagem', required: false })
+  @IsString()
+  @IsOptional()
+  descricaoNaoConformidade?: string;
+
   @ApiProperty({ type: 'string', format: 'binary', required: false })
   nfeFile?: any;
 

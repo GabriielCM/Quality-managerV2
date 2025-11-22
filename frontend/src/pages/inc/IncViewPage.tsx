@@ -13,6 +13,7 @@ interface Inc {
   um: string;
   quantidadeRecebida: number;
   quantidadeComDefeito: number;
+  descricaoNaoConformidade?: string;
   status: string;
   criadoPor: {
     id: string;
@@ -183,6 +184,14 @@ export default function IncViewPage() {
             </div>
           </div>
         </div>
+
+        {/* Descrição da Não Conformidade */}
+        {inc.descricaoNaoConformidade && (
+          <div className="card">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Descrição da Não Conformidade</h2>
+            <p className="text-gray-700 whitespace-pre-wrap">{inc.descricaoNaoConformidade}</p>
+          </div>
+        )}
 
         {/* NF-e */}
         {inc.nfeAnexo && (

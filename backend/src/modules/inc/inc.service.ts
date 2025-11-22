@@ -20,6 +20,7 @@ export class IncService {
       um: createIncDto.um,
       quantidadeRecebida: createIncDto.quantidadeRecebida,
       quantidadeComDefeito: createIncDto.quantidadeComDefeito,
+      descricaoNaoConformidade: createIncDto.descricaoNaoConformidade,
       status: 'Em análise',
       criadoPorId,
     };
@@ -130,6 +131,7 @@ export class IncService {
       um: updateIncDto.um,
       quantidadeRecebida: updateIncDto.quantidadeRecebida,
       quantidadeComDefeito: updateIncDto.quantidadeComDefeito,
+      descricaoNaoConformidade: updateIncDto.descricaoNaoConformidade,
       status: updateIncDto.status,
     };
 

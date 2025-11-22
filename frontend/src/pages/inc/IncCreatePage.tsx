@@ -13,6 +13,7 @@ export default function IncCreatePage() {
     um: 'KG',
     quantidadeRecebida: '',
     quantidadeComDefeito: '',
+    descricaoNaoConformidade: '',
   });
   const [nfeFile, setNfeFile] = useState<File | null>(null);
   const [fotos, setFotos] = useState<File[]>([]);
@@ -44,6 +45,9 @@ export default function IncCreatePage() {
       data.append('um', formData.um);
       data.append('quantidadeRecebida', formData.quantidadeRecebida);
       data.append('quantidadeComDefeito', formData.quantidadeComDefeito);
+      if (formData.descricaoNaoConformidade) {
+        data.append('descricaoNaoConformidade', formData.descricaoNaoConformidade);
+      }
 
       if (nfeFile) {
         data.append('nfeFile', nfeFile);
@@ -162,6 +166,22 @@ export default function IncCreatePage() {
               }
               className="input"
               required
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <label htmlFor="descricaoNaoConformidade" className="label">
+              Descrição da Não Conformidade
+            </label>
+            <textarea
+              id="descricaoNaoConformidade"
+              value={formData.descricaoNaoConformidade}
+              onChange={(e) =>
+                setFormData({ ...formData, descricaoNaoConformidade: e.target.value })
+              }
+              className="input"
+              rows={4}
+              placeholder="Descreva detalhadamente a não conformidade encontrada..."
             />
           </div>
 

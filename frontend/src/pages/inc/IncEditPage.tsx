@@ -12,6 +12,7 @@ interface Inc {
   um: string;
   quantidadeRecebida: number;
   quantidadeComDefeito: number;
+  descricaoNaoConformidade?: string;
   status: string;
   fotos: {
     id: string;
@@ -32,6 +33,7 @@ export default function IncEditPage() {
     um: 'KG',
     quantidadeRecebida: '',
     quantidadeComDefeito: '',
+    descricaoNaoConformidade: '',
     status: 'Em análise',
   });
   const [nfeFile, setNfeFile] = useState<File | null>(null);
@@ -52,6 +54,7 @@ export default function IncEditPage() {
         um: data.um,
         quantidadeRecebida: data.quantidadeRecebida.toString(),
         quantidadeComDefeito: data.quantidadeComDefeito.toString(),
+        descricaoNaoConformidade: data.descricaoNaoConformidade || '',
         status: data.status,
       });
     } catch (error: any) {
@@ -101,6 +104,9 @@ export default function IncEditPage() {
       data.append('um', formData.um);
       data.append('quantidadeRecebida', formData.quantidadeRecebida);
       data.append('quantidadeComDefeito', formData.quantidadeComDefeito);
+      if (formData.descricaoNaoConformidade) {
+        data.append('descricaoNaoConformidade', formData.descricaoNaoConformidade);
+      }
       data.append('status', formData.status);
 
       if (nfeFile) {
@@ -245,6 +251,22 @@ export default function IncEditPage() {
               }
               className="input"
               required
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <label htmlFor="descricaoNaoConformidade" className="label">
+              Descrição da Não Conformidade
+            </label>
+            <textarea
+              id="descricaoNaoConformidade"
+              value={formData.descricaoNaoConformidade}
+              onChange={(e) =>
+                setFormData({ ...formData, descricaoNaoConformidade: e.target.value })
+              }
+              className="input"
+              rows={4}
+              placeholder="Descreva detalhadamente a não conformidade encontrada..."
             />
           </div>
 

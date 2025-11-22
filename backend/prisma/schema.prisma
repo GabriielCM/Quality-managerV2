@@ -65,18 +65,19 @@ model RefreshToken {
 
 // Módulo INC
 model Inc {
-  id                    String   @id @default(uuid())
-  data                  DateTime @default(now())
-  ar                    Int
-  nfeNumero             String
-  nfeAnexo              String?  // path do arquivo
-  um                    String   // UN, KG, M, etc
-  quantidadeRecebida    Float
-  quantidadeComDefeito  Float
-  status                String   @default("Em análise") // "Em análise", "Aprovado", "Rejeitado"
-  criadoPorId           String
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  id                       String   @id @default(uuid())
+  data                     DateTime @default(now())
+  ar                       Int
+  nfeNumero                String
+  nfeAnexo                 String?  // path do arquivo
+  um                       String   // UN, KG, M, etc
+  quantidadeRecebida       Float
+  quantidadeComDefeito     Float
+  descricaoNaoConformidade String?
+  status                   String   @default("Em análise") // "Em análise", "Aprovado", "Rejeitado"
+  criadoPorId              String
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
 
   // Relacionamentos
   criadoPor User      @relation(fields: [criadoPorId], references: [id])
