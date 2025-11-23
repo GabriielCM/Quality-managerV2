@@ -20,6 +20,13 @@ async function main() {
     { code: 'fornecedores.update', name: 'Atualizar Fornecedores', module: 'fornecedores', description: 'Permite atualizar fornecedores' },
     { code: 'fornecedores.delete', name: 'Deletar Fornecedores', module: 'fornecedores', description: 'Permite deletar fornecedores' },
 
+    // Permissões de RNC
+    { code: 'rnc.create', name: 'Criar RNC', module: 'rnc', description: 'Permite criar novos relatórios de não conformidade' },
+    { code: 'rnc.read', name: 'Visualizar RNC', module: 'rnc', description: 'Permite visualizar relatórios de não conformidade' },
+    { code: 'rnc.update', name: 'Editar RNC', module: 'rnc', description: 'Permite editar relatórios de não conformidade' },
+    { code: 'rnc.delete', name: 'Deletar RNC', module: 'rnc', description: 'Permite deletar relatórios de não conformidade' },
+    { code: 'rnc.approve', name: 'Aprovar por Concessão', module: 'rnc', description: 'Permite aprovar INC por concessão' },
+
     // Permissões de Usuários
     { code: 'users.create', name: 'Criar Usuário', module: 'users', description: 'Permite criar novos usuários' },
     { code: 'users.read', name: 'Visualizar Usuários', module: 'users', description: 'Permite visualizar usuários' },

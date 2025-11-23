@@ -22,6 +22,7 @@ model User {
   permissions UserPermission[]
   refreshTokens RefreshToken[]
   incs        Inc[]
+  rncs        Rnc[]
 
   @@map("users")
 }
@@ -74,7 +75,7 @@ model Inc {
   quantidadeRecebida       Float
   quantidadeComDefeito     Float
   descricaoNaoConformidade String?
-  status                   String   @default("Em análise") // "Em análise", "Aprovado", "Rejeitado"
+  status                   String   @default("Em análise") // "Em análise", "Aprovado", "Rejeitado", "Aprovado por concessão", "RNC enviada"
   criadoPorId              String
   fornecedorId             String
   createdAt                DateTime @default(now())
@@ -84,6 +85,7 @@ model Inc {
   criadoPor  User        @relation(fields: [criadoPorId], references: [id])
   fornecedor Fornecedor  @relation(fields: [fornecedorId], references: [id])
   fotos      IncFoto[]
+  rncs       Rnc[]
 
   @@map("incs")
 }
@@ -111,6 +113,47 @@ model Fornecedor {
 
   // Relacionamentos
   incs Inc[]
+  rncs Rnc[]
 
   @@map("fornecedores")
+}
+
+// Módulo RNC (Relatório de Não Conformidade)
+model Rnc {
+  id                       String   @id @default(uuid())
+  numero                   String   @unique // RNC:001/2025
+  sequencial               Int      // 1, 2, 3... (por fornecedor/ano)
+  ano                      Int      // 2025, 2026...
+  data                     DateTime @default(now())
+
+  // Dados importados da INC
+  ar                       Int
+  nfeNumero                String
+  um                       String
+  quantidadeRecebida       Float
+  quantidadeComDefeito     Float
+  descricaoNaoConformidade String
+
+  // Campos específicos da RNC
+  reincidente              Boolean  @default(false)
+  rncAnteriorId            String?  // Se reincidente, referência à RNC anterior
+  status                   String   @default("RNC enviada") // "RNC enviada", "Aguardando resposta", "Em análise", "Concluída"
+  pdfPath                  String?  // Caminho do PDF gerado
+
+  // Relacionamentos
+  incId                    String
+  fornecedorId             String
+  criadoPorId              String
+
+  inc          Inc         @relation(fields: [incId], references: [id])
+  fornecedor   Fornecedor  @relation(fields: [fornecedorId], references: [id])
+  criadoPor    User        @relation(fields: [criadoPorId], references: [id])
+  rncAnterior  Rnc?        @relation("RncReincidente", fields: [rncAnteriorId], references: [id])
+  rncsFilhas   Rnc[]       @relation("RncReincidente")
+
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  @@unique([fornecedorId, sequencial, ano])
+  @@map("rncs")
 }

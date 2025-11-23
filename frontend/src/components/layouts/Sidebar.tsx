@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { useUIStore } from '@/stores/uiStore';
-import { LayoutDashboard, Users, FileText, Building2, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, Building2, X, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
 import { useState } from 'react';
 import clsx from 'clsx';
 
@@ -28,6 +28,12 @@ export default function Sidebar() {
       href: '/inc',
       icon: FileText,
       permissions: ['inc.read', 'admin.all'],
+    },
+    {
+      name: 'RNC',
+      href: '/rnc/analysis',
+      icon: AlertTriangle,
+      permissions: ['rnc.read', 'rnc.create', 'admin.all'],
     },
     {
       name: 'Fornecedores',

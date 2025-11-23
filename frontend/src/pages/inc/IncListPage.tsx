@@ -79,6 +79,10 @@ export default function IncListPage() {
         return 'bg-green-100 text-green-800';
       case 'Rejeitado':
         return 'bg-red-100 text-red-800';
+      case 'Aprovado por concessão':
+        return 'bg-green-100 text-green-800';
+      case 'RNC enviada':
+        return 'bg-blue-100 text-blue-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
