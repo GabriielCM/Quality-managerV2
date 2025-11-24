@@ -87,6 +87,8 @@ export default function RncListPage() {
         return 'bg-orange-100 text-orange-800';
       case 'Concluída':
         return 'bg-green-100 text-green-800';
+      case 'RNC aceita':
+        return 'bg-emerald-100 text-emerald-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -123,6 +125,7 @@ export default function RncListPage() {
               <option value="Aguardando resposta">Aguardando resposta</option>
               <option value="Em análise">Em análise</option>
               <option value="Concluída">Concluída</option>
+              <option value="RNC aceita">RNC aceita</option>
             </select>
           </div>
 

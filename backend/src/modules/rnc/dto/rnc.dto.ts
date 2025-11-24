@@ -31,7 +31,7 @@ export class CreateRncDto {
 export class UpdateRncDto extends PartialType(CreateRncDto) {
   @IsOptional()
   @IsString()
-  @IsIn(['RNC enviada', 'Aguardando resposta', 'Em análise', 'Concluída'])
+  @IsIn(['RNC enviada', 'Aguardando resposta', 'Em análise', 'Concluída', 'RNC aceita'])
   status?: string;
 }
 
@@ -56,4 +56,9 @@ export class FilterRncDto {
 export class AprovarPorConcessaoDto {
   @IsUUID()
   incId: string;
+}
+
+export class RecusarPlanoAcaoDto {
+  @IsString()
+  justificativa: string;
 }

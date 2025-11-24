@@ -10,6 +10,7 @@ import {
   UpdateRncDto,
   FilterRncDto,
   AprovarPorConcessaoDto,
+  RecusarPlanoAcaoDto,
 } from './dto/rnc.dto';
 import * as PDFDocument from 'pdfkit';
 import * as fs from 'fs';
@@ -89,7 +90,9 @@ export class RncService {
     const sequencial = await this.generateSequencial(inc.fornecedorId, ano);
     const numero = `RNC:${sequencial.toString().padStart(3, '0')}/${ano}`;
 
-    // Criar a RNC
+    // Criar a RNC com prazo inicial de 7 dias
+    const prazoInicio = new Date();
+
     const rnc = await this.prisma.rnc.create({
       data: {
         numero,
@@ -105,6 +108,7 @@ export class RncService {
         reincidente: createRncDto.reincidente,
         rncAnteriorId: createRncDto.rncAnteriorId,
         status: 'RNC enviada',
+        prazoInicio,
         incId: inc.id,
         fornecedorId: inc.fornecedorId,
         criadoPorId: userId,
@@ -311,16 +315,28 @@ export class RncService {
   async remove(id: string) {
     const rnc = await this.prisma.rnc.findUnique({
       where: { id },
+      include: {
+        inc: true,
+      },
     });
 
     if (!rnc) {
       throw new NotFoundException('RNC não encontrada');
     }
 
-    // Deletar PDF se existir
+    // Deletar PDFs se existirem
     if (rnc.pdfPath) {
       this.deleteFile(rnc.pdfPath);
     }
+    if (rnc.planoAcaoPdfPath) {
+      this.deleteFile(rnc.planoAcaoPdfPath);
+    }
+
+    // Reverter status da INC para "Em análise"
+    await this.prisma.inc.update({
+      where: { id: rnc.incId },
+      data: { status: 'Em análise' },
+    });
 
     await this.prisma.rnc.delete({
       where: { id },
@@ -566,6 +582,216 @@ export class RncService {
     });
 
     return filename;
+  }
+
+  /**
+   * Aceita o plano de ação de uma RNC
+   */
+  async aceitarPlanoAcao(
+    id: string,
+    file: Express.Multer.File,
+    userId: string,
+  ) {
+    const rnc = await this.prisma.rnc.findUnique({
+      where: { id },
+    });
+
+    if (!rnc) {
+      throw new NotFoundException('RNC não encontrada');
+    }
+
+    if (rnc.status !== 'RNC enviada') {
+      throw new BadRequestException(
+        'Apenas RNCs com status "RNC enviada" podem ter plano de ação aceito',
+      );
+    }
+
+    // Salvar o arquivo do plano de ação
+    const filename = file.filename;
+
+    // Calcular prazo (data atual até 7 dias)
+    const prazoInicio = new Date();
+    const prazoFim = new Date();
+    prazoFim.setDate(prazoFim.getDate() + 7);
+
+    // Atualizar RNC com status "RNC aceita" e PDF do plano de ação
+    const rncAtualizada = await this.prisma.rnc.update({
+      where: { id },
+      data: {
+        status: 'RNC aceita',
+        planoAcaoPdfPath: filename,
+        prazoInicio,
+      },
+      include: {
+        inc: true,
+        fornecedor: true,
+        criadoPor: {
+          select: {
+            id: true,
+            nome: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    // Criar registro no histórico
+    await this.prisma.rncHistorico.create({
+      data: {
+        rncId: id,
+        tipo: 'ACEITE',
+        pdfPath: filename,
+        prazoInicio,
+        prazoFim,
+        criadoPorId: userId,
+      },
+    });
+
+    return rncAtualizada;
+  }
+
+  /**
+   * Recusa o plano de ação de uma RNC
+   */
+  async recusarPlanoAcao(
+    id: string,
+    file: Express.Multer.File,
+    dto: RecusarPlanoAcaoDto,
+    userId: string,
+  ) {
+    const rnc = await this.prisma.rnc.findUnique({
+      where: { id },
+    });
+
+    if (!rnc) {
+      throw new NotFoundException('RNC não encontrada');
+    }
+
+    if (rnc.status !== 'RNC enviada') {
+      throw new BadRequestException(
+        'Apenas RNCs com status "RNC enviada" podem ter plano de ação recusado',
+      );
+    }
+
+    // Salvar o arquivo do plano de ação
+    const filename = file.filename;
+
+    // Calcular novo prazo (data atual até 7 dias)
+    const prazoInicio = new Date();
+    const prazoFim = new Date();
+    prazoFim.setDate(prazoFim.getDate() + 7);
+
+    // Atualizar apenas o prazo (status mantém "RNC enviada")
+    const rncAtualizada = await this.prisma.rnc.update({
+      where: { id },
+      data: {
+        prazoInicio,
+      },
+      include: {
+        inc: true,
+        fornecedor: true,
+        criadoPor: {
+          select: {
+            id: true,
+            nome: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    // Criar registro no histórico
+    await this.prisma.rncHistorico.create({
+      data: {
+        rncId: id,
+        tipo: 'RECUSA',
+        pdfPath: filename,
+        justificativa: dto.justificativa,
+        prazoInicio,
+        prazoFim,
+        criadoPorId: userId,
+      },
+    });
+
+    return rncAtualizada;
+  }
+
+  /**
+   * Busca o histórico de uma RNC
+   */
+  async getHistorico(id: string) {
+    const rnc = await this.prisma.rnc.findUnique({
+      where: { id },
+    });
+
+    if (!rnc) {
+      throw new NotFoundException('RNC não encontrada');
+    }
+
+    return this.prisma.rncHistorico.findMany({
+      where: {
+        rncId: id,
+      },
+      include: {
+        criadoPor: {
+          select: {
+            id: true,
+            nome: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+
+  /**
+   * Busca um item específico do histórico
+   */
+  async findHistoricoItem(historicoId: string) {
+    const historico = await this.prisma.rncHistorico.findUnique({
+      where: { id: historicoId },
+      include: {
+        criadoPor: {
+          select: {
+            id: true,
+            nome: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!historico) {
+      throw new NotFoundException('Item do histórico não encontrado');
+    }
+
+    return historico;
+  }
+
+  /**
+   * Calcula os dias restantes do prazo atual
+   */
+  calcularDiasRestantes(prazoInicio: Date): number {
+    if (!prazoInicio) {
+      return 0;
+    }
+
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    const inicio = new Date(prazoInicio);
+    inicio.setHours(0, 0, 0, 0);
+
+    const prazoFim = new Date(inicio);
+    prazoFim.setDate(prazoFim.getDate() + 7);
+
+    const diffTime = prazoFim.getTime() - hoje.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    return Math.max(0, diffDays);
   }
 
   /**

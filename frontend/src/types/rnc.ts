@@ -20,6 +20,8 @@ export interface Rnc {
   rncAnteriorId: string | null;
   status: string;
   pdfPath: string | null;
+  planoAcaoPdfPath: string | null;
+  prazoInicio: string | null;
 
   // Relacionamentos
   incId: string;
@@ -96,4 +98,27 @@ export interface RncAnterior {
   data: string;
   status: string;
   descricaoNaoConformidade: string;
+}
+
+export interface RecusarPlanoAcaoDto {
+  justificativa: string;
+}
+
+export interface RncHistorico {
+  id: string;
+  rncId: string;
+  tipo: 'ACEITE' | 'RECUSA';
+  data: string;
+  pdfPath: string;
+  justificativa: string | null;
+  prazoInicio: string;
+  prazoFim: string;
+  criadoPorId: string;
+  criadoPor?: {
+    id: string;
+    nome: string;
+    email: string;
+  };
+  createdAt: string;
+  updatedAt: string;
 }

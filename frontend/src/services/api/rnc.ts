@@ -6,6 +6,7 @@ import {
   FilterRncDto,
   AprovarPorConcessaoDto,
   RncAnterior,
+  RncHistorico,
 } from '@/types/rnc';
 
 export const rncApi = {
@@ -80,6 +81,69 @@ export const rncApi = {
    */
   async downloadPdf(id: string): Promise<Blob> {
     const response = await api.get(`/rnc/${id}/pdf`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  /**
+   * Aceitar plano de ação de uma RNC
+   */
+  async aceitarPlanoAcao(id: string, file: File): Promise<Rnc> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await api.post<Rnc>(`/rnc/${id}/aceitar`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  /**
+   * Recusar plano de ação de uma RNC
+   */
+  async recusarPlanoAcao(
+    id: string,
+    file: File,
+    justificativa: string,
+  ): Promise<Rnc> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('justificativa', justificativa);
+
+    const response = await api.post<Rnc>(`/rnc/${id}/recusar`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  /**
+   * Buscar histórico de uma RNC
+   */
+  async getHistorico(id: string): Promise<RncHistorico[]> {
+    const response = await api.get<RncHistorico[]>(`/rnc/${id}/historico`);
+    return response.data;
+  },
+
+  /**
+   * Baixar PDF do plano de ação
+   */
+  async downloadPlanoAcaoPdf(id: string): Promise<Blob> {
+    const response = await api.get(`/rnc/${id}/plano-acao-pdf`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  /**
+   * Baixar PDF de um item do histórico
+   */
+  async downloadHistoricoPdf(historicoId: string): Promise<Blob> {
+    const response = await api.get(`/rnc/historico/${historicoId}/pdf`, {
       responseType: 'blob',
     });
     return response.data;

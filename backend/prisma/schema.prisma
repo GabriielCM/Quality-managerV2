@@ -23,6 +23,7 @@ model User {
   refreshTokens RefreshToken[]
   incs        Inc[]
   rncs        Rnc[]
+  rncHistoricos RncHistorico[]
 
   @@map("users")
 }
@@ -137,8 +138,10 @@ model Rnc {
   // Campos específicos da RNC
   reincidente              Boolean  @default(false)
   rncAnteriorId            String?  // Se reincidente, referência à RNC anterior
-  status                   String   @default("RNC enviada") // "RNC enviada", "Aguardando resposta", "Em análise", "Concluída"
-  pdfPath                  String?  // Caminho do PDF gerado
+  status                   String   @default("RNC enviada") // "RNC enviada", "Aguardando resposta", "Em análise", "Concluída", "RNC aceita"
+  pdfPath                  String?  // Caminho do PDF gerado automaticamente
+  planoAcaoPdfPath         String?  // Caminho do PDF do plano de ação do fornecedor
+  prazoInicio              DateTime? // Data de início do prazo atual de 7 dias
 
   // Relacionamentos
   incId                    String
@@ -150,10 +153,33 @@ model Rnc {
   criadoPor    User        @relation(fields: [criadoPorId], references: [id])
   rncAnterior  Rnc?        @relation("RncReincidente", fields: [rncAnteriorId], references: [id])
   rncsFilhas   Rnc[]       @relation("RncReincidente")
+  historico    RncHistorico[]
 
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 
   @@unique([fornecedorId, sequencial, ano])
   @@map("rncs")
+}
+
+// Histórico de aceites e recusas de planos de ação
+model RncHistorico {
+  id            String   @id @default(uuid())
+  rncId         String
+  tipo          String   // "ACEITE" ou "RECUSA"
+  data          DateTime @default(now())
+  pdfPath       String   // Caminho do PDF anexado
+  justificativa String?  // Justificativa (obrigatória apenas para RECUSA)
+  prazoInicio   DateTime // Data de início do prazo de 7 dias
+  prazoFim      DateTime // Data de fim do prazo (prazoInicio + 7 dias)
+  criadoPorId   String
+
+  // Relacionamentos
+  rnc        Rnc  @relation(fields: [rncId], references: [id], onDelete: Cascade)
+  criadoPor  User @relation(fields: [criadoPorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("rnc_historico")
 }

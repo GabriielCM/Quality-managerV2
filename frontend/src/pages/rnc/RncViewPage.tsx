@@ -2,9 +2,20 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Download, ExternalLink, AlertTriangle } from 'lucide-react';
+import {
+  ArrowLeft,
+  Download,
+  ExternalLink,
+  AlertTriangle,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  FileText,
+} from 'lucide-react';
 import { rncApi } from '@/services/api/rnc';
-import { Rnc } from '@/types/rnc';
+import { Rnc, RncHistorico } from '@/types/rnc';
+import { AceitarPlanoAcaoModal } from '@/components/rnc/AceitarPlanoAcaoModal';
+import { RecusarPlanoAcaoModal } from '@/components/rnc/RecusarPlanoAcaoModal';
 
 export default function RncViewPage() {
   const { id } = useParams<{ id: string }>();
@@ -12,8 +23,13 @@ export default function RncViewPage() {
   const { hasPermission } = useAuthStore();
   const [rnc, setRnc] = useState<Rnc | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [historico, setHistorico] = useState<RncHistorico[]>([]);
+  const [isLoadingHistorico, setIsLoadingHistorico] = useState(false);
+  const [isAceitarModalOpen, setIsAceitarModalOpen] = useState(false);
+  const [isRecusarModalOpen, setIsRecusarModalOpen] = useState(false);
 
   const canRead = hasPermission('rnc.read');
+  const canUpdate = hasPermission('rnc.update');
 
   useEffect(() => {
     if (id) {
@@ -26,11 +42,24 @@ export default function RncViewPage() {
       setIsLoading(true);
       const data = await rncApi.findOne(rncId);
       setRnc(data);
+      loadHistorico(rncId);
     } catch (error: any) {
       toast.error('Erro ao carregar RNC');
       navigate('/rnc');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadHistorico = async (rncId: string) => {
+    try {
+      setIsLoadingHistorico(true);
+      const data = await rncApi.getHistorico(rncId);
+      setHistorico(data);
+    } catch (error: any) {
+      console.error('Erro ao carregar histórico:', error);
+    } finally {
+      setIsLoadingHistorico(false);
     }
   };
 
@@ -53,6 +82,92 @@ export default function RncViewPage() {
     }
   };
 
+  const handleDownloadPlanoAcaoPdf = async () => {
+    if (!rnc) return;
+
+    try {
+      const blob = await rncApi.downloadPlanoAcaoPdf(rnc.id);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `plano-acao-${rnc.numero.replace(/[:\/]/g, '-')}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success('PDF do plano de ação baixado com sucesso');
+    } catch (error: any) {
+      toast.error('Erro ao baixar PDF do plano de ação');
+    }
+  };
+
+  const handleDownloadHistoricoPdf = async (
+    historicoId: string,
+    tipo: string,
+    data: string,
+  ) => {
+    try {
+      const blob = await rncApi.downloadHistoricoPdf(historicoId);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const tipoTexto = tipo === 'ACEITE' ? 'aceito' : 'recusado';
+      const dataFormatada = new Date(data).toISOString().split('T')[0];
+      link.download = `plano-acao-${tipoTexto}-${dataFormatada}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success('PDF do histórico baixado com sucesso');
+    } catch (error: any) {
+      toast.error('Erro ao baixar PDF do histórico');
+    }
+  };
+
+  const handleAceitarPlanoAcao = async (file: File) => {
+    if (!rnc) return;
+
+    try {
+      const updatedRnc = await rncApi.aceitarPlanoAcao(rnc.id, file);
+      setRnc(updatedRnc);
+      loadHistorico(rnc.id);
+      toast.success('Plano de ação aceito com sucesso!');
+    } catch (error: any) {
+      throw error;
+    }
+  };
+
+  const handleRecusarPlanoAcao = async (file: File, justificativa: string) => {
+    if (!rnc) return;
+
+    try {
+      const updatedRnc = await rncApi.recusarPlanoAcao(rnc.id, file, justificativa);
+      setRnc(updatedRnc);
+      loadHistorico(rnc.id);
+      toast.success('Plano de ação recusado. Novo prazo de 7 dias iniciado.');
+    } catch (error: any) {
+      throw error;
+    }
+  };
+
+  const calcularDiasRestantes = (prazoInicio: string | null): number => {
+    if (!prazoInicio) return 0;
+
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    const inicio = new Date(prazoInicio);
+    inicio.setHours(0, 0, 0, 0);
+
+    const prazoFim = new Date(inicio);
+    prazoFim.setDate(prazoFim.getDate() + 7);
+
+    const diffTime = prazoFim.getTime() - hoje.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    return Math.max(0, diffDays);
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'RNC enviada':
@@ -63,6 +178,8 @@ export default function RncViewPage() {
         return 'bg-orange-100 text-orange-800';
       case 'Concluída':
         return 'bg-green-100 text-green-800';
+      case 'RNC aceita':
+        return 'bg-emerald-100 text-emerald-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -103,6 +220,15 @@ export default function RncViewPage() {
           <p className="text-gray-600 mt-2">Relatório de Não Conformidade</p>
         </div>
         <div className="flex space-x-3">
+          {rnc.planoAcaoPdfPath && (
+            <button
+              onClick={handleDownloadPlanoAcaoPdf}
+              className="btn btn-success flex items-center space-x-2"
+            >
+              <FileText className="w-5 h-5" />
+              <span>Plano de Ação</span>
+            </button>
+          )}
           {rnc.pdfPath && (
             <button
               onClick={handleDownloadPdf}
@@ -121,6 +247,41 @@ export default function RncViewPage() {
           </button>
         </div>
       </div>
+
+      {/* Botões de Ação do Plano de Ação */}
+      {rnc.status === 'RNC enviada' && canUpdate && (
+        <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Clock className="w-6 h-6 text-blue-600" />
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Aguardando Resposta do Plano de Ação
+                </h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  {calcularDiasRestantes(rnc.prazoInicio)} dias restantes do prazo de 7 dias
+                </p>
+              </div>
+            </div>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setIsRecusarModalOpen(true)}
+                className="btn bg-red-600 text-white hover:bg-red-700 flex items-center space-x-2"
+              >
+                <XCircle className="w-5 h-5" />
+                <span>Recusar</span>
+              </button>
+              <button
+                onClick={() => setIsAceitarModalOpen(true)}
+                className="btn bg-green-600 text-white hover:bg-green-700 flex items-center space-x-2"
+              >
+                <CheckCircle2 className="w-5 h-5" />
+                <span>Aceitar</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Status e Reincidência */}
       <div className="bg-white shadow-md rounded-lg p-6 mb-6">
@@ -335,6 +496,104 @@ export default function RncViewPage() {
         </div>
       )}
 
+      {/* Histórico de Aceites e Recusas */}
+      {historico.length > 0 && (
+        <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            Histórico do Plano de Ação
+          </h2>
+          {isLoadingHistorico ? (
+            <div className="text-center py-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {historico.map((item) => (
+                <div
+                  key={item.id}
+                  className={`border rounded-lg p-4 ${
+                    item.tipo === 'ACEITE'
+                      ? 'bg-green-50 border-green-200'
+                      : 'bg-red-50 border-red-200'
+                  }`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start space-x-3 flex-1">
+                      <div className="flex-shrink-0">
+                        {item.tipo === 'ACEITE' ? (
+                          <CheckCircle2 className="w-6 h-6 text-green-600" />
+                        ) : (
+                          <XCircle className="w-6 h-6 text-red-600" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h3
+                            className={`font-semibold ${
+                              item.tipo === 'ACEITE'
+                                ? 'text-green-900'
+                                : 'text-red-900'
+                            }`}
+                          >
+                            {item.tipo === 'ACEITE'
+                              ? 'Plano de Ação Aceito'
+                              : 'Plano de Ação Recusado'}
+                          </h3>
+                          <span className="text-sm text-gray-500">
+                            {new Date(item.data).toLocaleDateString('pt-BR')}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Por: {item.criadoPor?.nome || 'N/A'}
+                        </p>
+                        <div className="mt-2 text-sm text-gray-700">
+                          <p>
+                            <span className="font-medium">Prazo:</span>{' '}
+                            {new Date(item.prazoInicio).toLocaleDateString('pt-BR')} -{' '}
+                            {new Date(item.prazoFim).toLocaleDateString('pt-BR')}
+                          </p>
+                        </div>
+                        {item.justificativa && (
+                          <div className="mt-3 p-3 bg-white rounded border border-red-200">
+                            <p className="text-sm font-medium text-gray-700 mb-1">
+                              Justificativa:
+                            </p>
+                            <p className="text-sm text-gray-900 whitespace-pre-wrap">
+                              {item.justificativa}
+                            </p>
+                          </div>
+                        )}
+                        {item.pdfPath && (
+                          <div className="mt-3">
+                            <button
+                              onClick={() =>
+                                handleDownloadHistoricoPdf(
+                                  item.id,
+                                  item.tipo,
+                                  item.data,
+                                )
+                              }
+                              className={`btn btn-sm flex items-center space-x-2 ${
+                                item.tipo === 'ACEITE'
+                                  ? 'bg-green-600 text-white hover:bg-green-700'
+                                  : 'bg-red-600 text-white hover:bg-red-700'
+                              }`}
+                            >
+                              <Download className="w-4 h-4" />
+                              <span>Baixar PDF Anexado</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Fotos da INC (se houver) */}
       {rnc.inc?.fotos && rnc.inc.fotos.length > 0 && (
         <div className="bg-white shadow-md rounded-lg p-6 mb-6">
@@ -360,6 +619,20 @@ export default function RncViewPage() {
           </div>
         </div>
       )}
+
+      {/* Modals */}
+      <AceitarPlanoAcaoModal
+        isOpen={isAceitarModalOpen}
+        onClose={() => setIsAceitarModalOpen(false)}
+        onSubmit={handleAceitarPlanoAcao}
+        rncNumero={rnc.numero}
+      />
+      <RecusarPlanoAcaoModal
+        isOpen={isRecusarModalOpen}
+        onClose={() => setIsRecusarModalOpen(false)}
+        onSubmit={handleRecusarPlanoAcao}
+        rncNumero={rnc.numero}
+      />
     </div>
   );
 }
