@@ -74,6 +74,9 @@ The system uses a granular Role-Based Access Control model:
 **Default Permissions** (see `backend/prisma/seed.ts`):
 - `admin.all` - Full system access
 - `inc.{create|read|update|delete}` - INC module operations
+- `rnc.{create|read|update|delete}` - RNC module operations
+- `rnc.approve` - Approve INC by concession
+- `fornecedores.{create|read|update|delete}` - Fornecedores module operations
 - `users.{create|read|update|delete|manage_permissions}` - User management
 
 ### Module Structure

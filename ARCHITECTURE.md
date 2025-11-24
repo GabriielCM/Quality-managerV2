@@ -201,6 +201,91 @@ Fornecedor {
 - Uma INC pode ter um fornecedor (opcional)
 - Relacionamento estabelecido via `fornecedorId` na tabela Inc
 
+### 6. Módulo RNC (Relatório de Não Conformidade)
+
+**Responsabilidades:**
+- Geração de RNC a partir de INCs em análise
+- Aprovação de INC por concessão
+- Gerenciamento de reincidências
+- Geração automática de PDF
+- Numeração sequencial por fornecedor/ano
+
+**Estrutura:**
+```typescript
+Rnc {
+  id: string
+  numero: string (RNC:001/2025)
+  sequencial: number (1, 2, 3...)
+  ano: number (2025, 2026...)
+  data: DateTime
+
+  // Dados importados da INC
+  ar: number
+  nfeNumero: string
+  um: string
+  quantidadeRecebida: number
+  quantidadeComDefeito: number
+  descricaoNaoConformidade: string
+
+  // Campos específicos RNC
+  reincidente: boolean
+  rncAnteriorId: string (opcional)
+  status: string (RNC enviada, Aguardando resposta, Em análise, Concluída)
+  pdfPath: string (filename)
+
+  // Relacionamentos
+  incId: string
+  fornecedorId: string
+  criadoPorId: string
+  inc: Inc
+  fornecedor: Fornecedor
+  criadoPor: User
+  rncAnterior: Rnc (opcional)
+  rncsFilhas: Rnc[]
+}
+```
+
+**Status da INC:**
+- `Em análise` → Estado inicial, aguarda decisão
+- `RNC enviada` → RNC foi gerada (azul)
+- `Aprovado por concessão` → Aprovado sem gerar RNC (verde)
+- `Aprovado` → Aprovado normal
+- `Rejeitado` → Rejeitado
+
+**Fluxo de Geração de RNC:**
+```
+1. INC criada com status "Em análise"
+2. Usuário acessa "Análise de INCs"
+3. Opção 1: Gerar RNC
+   - Importa dados da INC
+   - Permite editar descrição
+   - Marca reincidência (opcional)
+   - Gera número sequencial (RNC:001/2025)
+   - Cria PDF automaticamente
+   - Atualiza INC para "RNC enviada"
+4. Opção 2: Aprovar por Concessão
+   - Atualiza INC para "Aprovado por concessão"
+```
+
+**Numeração Sequencial:**
+- Formato: `RNC:XXX/YYYY`
+- Sequencial independente por fornecedor
+- Reseta a cada ano novo
+- Exemplo: RNC:001/2025, RNC:002/2025
+
+**Geração de PDF (PDFKit):**
+- PDF gerado automaticamente ao criar RNC
+- Inclui todos os dados da RNC e INC original
+- Destaque visual para reincidências
+- Armazenado em `/uploads`
+- Download disponível na interface
+
+**Reincidência:**
+- Flag boolean `reincidente`
+- Referência à RNC anterior do mesmo fornecedor
+- Exibição destacada em vermelho no PDF
+- Lista de RNCs filhas (reincidências posteriores)
+
 ## Fluxo de Dados
 
 ### Criação de INC com Upload
@@ -256,10 +341,15 @@ modules/
 │   ├── inc.controller.ts
 │   ├── inc.service.ts
 │   └── dto/
-└── fornecedores/
-    ├── fornecedores.module.ts
-    ├── fornecedores.controller.ts
-    ├── fornecedores.service.ts
+├── fornecedores/
+│   ├── fornecedores.module.ts
+│   ├── fornecedores.controller.ts
+│   ├── fornecedores.service.ts
+│   └── dto/
+└── rnc/
+    ├── rnc.module.ts
+    ├── rnc.controller.ts
+    ├── rnc.service.ts
     └── dto/
 ```
 
@@ -301,12 +391,17 @@ pages/
 │   ├── IncCreatePage.tsx
 │   ├── IncEditPage.tsx
 │   └── IncViewPage.tsx
-└── fornecedores/
-    ├── FornecedoresListPage.tsx
-    ├── FornecedorCreatePage.tsx
-    ├── FornecedorEditPage.tsx
-    ├── FornecedorViewPage.tsx
-    └── FornecedorForm.tsx
+├── fornecedores/
+│   ├── FornecedoresListPage.tsx
+│   ├── FornecedorCreatePage.tsx
+│   ├── FornecedorEditPage.tsx
+│   ├── FornecedorViewPage.tsx
+│   └── FornecedorForm.tsx
+└── rnc/
+    ├── RncAnalysisPage.tsx
+    ├── RncCreatePage.tsx
+    ├── RncListPage.tsx
+    └── RncViewPage.tsx
 ```
 
 **2. State Management (Zustand)**
@@ -347,10 +442,15 @@ authStore {
 ```prisma
 User ──┬─→ UserPermission ──→ Permission
        ├─→ RefreshToken
-       └─→ Inc ──┬─→ IncFoto
-                 └─→ Fornecedor
+       ├─→ Inc ──┬─→ IncFoto
+       │         ├─→ Fornecedor
+       │         └─→ Rnc
+       └─→ Rnc ──┬─→ Inc
+                 ├─→ Fornecedor
+                 └─→ RncAnterior (self-relation)
 
-Fornecedor ──→ Inc (1:N)
+Fornecedor ──┬─→ Inc (1:N)
+             └─→ Rnc (1:N)
 ```
 
 **Relacionamentos:**
@@ -358,15 +458,24 @@ Fornecedor ──→ Inc (1:N)
 - Permission → UserPermission (1:N)
 - User → RefreshToken (1:N)
 - User → Inc (1:N)
+- User → Rnc (1:N, criadoPor)
 - Inc → IncFoto (1:N)
-- Inc → Fornecedor (N:1, opcional)
+- Inc → Fornecedor (N:1)
+- Inc → Rnc (1:N)
+- Rnc → Inc (N:1, obrigatório)
+- Rnc → Fornecedor (N:1, obrigatório)
+- Rnc → User (N:1, criadoPor)
+- Rnc → Rnc (self-relation, rncAnterior opcional)
 - Fornecedor → Inc (1:N)
+- Fornecedor → Rnc (1:N)
 
 **Índices:**
 - Email (unique)
 - Permission Code (unique)
 - RefreshToken Token (unique)
 - CNPJ (unique)
+- RNC numero (unique)
+- RNC [fornecedorId, sequencial, ano] (unique composite)
 
 ## Segurança
 

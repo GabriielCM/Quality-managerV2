@@ -8,10 +8,17 @@
     "dev:frontend": "cd frontend && npm run dev",
     "build:backend": "cd backend && npm run build",
     "build:frontend": "cd frontend && npm run build",
+    "test:backend": "cd backend && npm run test",
+    "test:frontend": "cd frontend && npm run test",
+    "test:backend:watch": "cd backend && npm run test:watch",
+    "test:frontend:watch": "cd frontend && npm run test:watch",
+    "test:backend:cov": "cd backend && npm run test:cov",
+    "test:backend:e2e": "cd backend && npm run test:e2e",
     "prisma:migrate": "cd backend && npm run prisma:migrate",
     "prisma:generate": "cd backend && npm run prisma:generate",
     "prisma:seed": "cd backend && npm run prisma:seed",
-    "prisma:studio": "cd backend && npm run prisma:studio"
+    "prisma:studio": "cd backend && npm run prisma:studio",
+    "prisma:reset": "cd backend && npm run prisma:reset"
   },
   "keywords": [
     "nestjs",
