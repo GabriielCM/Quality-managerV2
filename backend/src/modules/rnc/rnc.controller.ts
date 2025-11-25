@@ -237,4 +237,10 @@ export class RncController {
     const fileStream = fs.createReadStream(filepath);
     fileStream.pipe(res);
   }
+
+  @Patch(':id/test-prazo')
+  @Permissions('rnc.update', 'admin.all')
+  testAdjustPrazo(@Param('id') id: string, @Body('diasAtras') diasAtras: number) {
+    return this.rncService.testAdjustPrazo(id, diasAtras);
+  }
 }

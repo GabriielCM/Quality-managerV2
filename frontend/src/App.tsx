@@ -18,6 +18,7 @@ import RncAnalysisPage from '@/pages/rnc/RncAnalysisPage';
 import RncCreatePage from '@/pages/rnc/RncCreatePage';
 import RncListPage from '@/pages/rnc/RncListPage';
 import RncViewPage from '@/pages/rnc/RncViewPage';
+import NotificationsPage from '@/pages/notifications/NotificationsPage';
 
 function App() {
   const { checkAuth, isLoading } = useAuthStore();
@@ -52,6 +53,9 @@ function App() {
 
           {/* Usuários */}
           <Route path="users" element={<UsersPage />} />
+
+          {/* Notificações */}
+          <Route path="notifications" element={<NotificationsPage />} />
 
           {/* INC */}
           <Route path="inc">

@@ -148,4 +148,12 @@ export const rncApi = {
     });
     return response.data;
   },
+
+  /**
+   * [TESTE] Ajustar prazoInicio de uma RNC para testar notificações
+   */
+  async testAdjustPrazo(id: string, diasAtras: number): Promise<Rnc> {
+    const response = await api.patch<Rnc>(`/rnc/${id}/test-prazo`, { diasAtras });
+    return response.data;
+  },
 };

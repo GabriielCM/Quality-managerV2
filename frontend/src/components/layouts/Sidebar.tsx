@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { useUIStore } from '@/stores/uiStore';
-import { LayoutDashboard, Users, FileText, Building2, X, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, Building2, X, ChevronLeft, ChevronRight, AlertTriangle, Bell } from 'lucide-react';
 import { useState } from 'react';
 import clsx from 'clsx';
 
@@ -46,6 +46,12 @@ export default function Sidebar() {
       href: '/users',
       icon: Users,
       permissions: ['users.read', 'admin.all'],
+    },
+    {
+      name: 'Notificações',
+      href: '/notifications',
+      icon: Bell,
+      permissions: ['notifications.read', 'admin.all'],
     },
   ];
 

@@ -150,6 +150,18 @@ export default function RncViewPage() {
     }
   };
 
+  const handleTestAdjustPrazo = async (diasAtras: number) => {
+    if (!rnc) return;
+
+    try {
+      const updatedRnc = await rncApi.testAdjustPrazo(rnc.id, diasAtras);
+      setRnc(updatedRnc);
+      toast.success(`Prazo ajustado para ${diasAtras} dias atrás (teste de notificações)`);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Erro ao ajustar prazo');
+    }
+  };
+
   const calcularDiasRestantes = (prazoInicio: string | null): number => {
     if (!prazoInicio) return 0;
 
@@ -247,6 +259,55 @@ export default function RncViewPage() {
           </button>
         </div>
       </div>
+
+      {/* Painel de Teste de Notificações */}
+      {(rnc.status === 'RNC enviada' || rnc.status === 'RNC aceita') && canUpdate && (
+        <div className="mb-6 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-300 rounded-lg p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <AlertTriangle className="w-6 h-6 text-orange-600" />
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  🧪 Teste de Notificações
+                </h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Ajuste a data de início do prazo para testar as notificações de RNC
+                </p>
+              </div>
+            </div>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => handleTestAdjustPrazo(5)}
+                className="btn btn-sm bg-blue-500 text-white hover:bg-blue-600"
+                title="Simular RNC com 2 dias restantes (5 dias atrás)"
+              >
+                2 dias restantes
+              </button>
+              <button
+                onClick={() => handleTestAdjustPrazo(6)}
+                className="btn btn-sm bg-orange-500 text-white hover:bg-orange-600"
+                title="Simular RNC com 1 dia restante (6 dias atrás)"
+              >
+                1 dia restante
+              </button>
+              <button
+                onClick={() => handleTestAdjustPrazo(7)}
+                className="btn btn-sm bg-red-600 text-white hover:bg-red-700"
+                title="Simular RNC vencendo hoje (7 dias atrás - URGENTE)"
+              >
+                Vence hoje (Urgente)
+              </button>
+              <button
+                onClick={() => handleTestAdjustPrazo(0)}
+                className="btn btn-sm bg-gray-500 text-white hover:bg-gray-600"
+                title="Resetar para hoje"
+              >
+                Resetar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Botões de Ação do Plano de Ação */}
       {rnc.status === 'RNC enviada' && canUpdate && (

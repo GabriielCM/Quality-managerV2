@@ -807,4 +807,46 @@ export class RncService {
       console.error('Erro ao deletar arquivo:', error);
     }
   }
+
+  /**
+   * [TESTE] Ajusta o prazoInicio de uma RNC para testar notificações
+   */
+  async testAdjustPrazo(id: string, diasAtras: number) {
+    const rnc = await this.prisma.rnc.findUnique({
+      where: { id },
+    });
+
+    if (!rnc) {
+      throw new NotFoundException('RNC não encontrada');
+    }
+
+    if (rnc.status !== 'RNC enviada' && rnc.status !== 'RNC aceita') {
+      throw new BadRequestException(
+        'Apenas RNCs com status "RNC enviada" ou "RNC aceita" podem ter o prazo ajustado',
+      );
+    }
+
+    // Ajustar prazoInicio para X dias atrás
+    const novoPrazoInicio = new Date();
+    novoPrazoInicio.setDate(novoPrazoInicio.getDate() - diasAtras);
+    novoPrazoInicio.setHours(0, 0, 0, 0);
+
+    return this.prisma.rnc.update({
+      where: { id },
+      data: {
+        prazoInicio: novoPrazoInicio,
+      },
+      include: {
+        inc: true,
+        fornecedor: true,
+        criadoPor: {
+          select: {
+            id: true,
+            nome: true,
+            email: true,
+          },
+        },
+      },
+    });
+  }
 }

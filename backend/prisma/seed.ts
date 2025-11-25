@@ -34,6 +34,11 @@ async function main() {
     { code: 'users.delete', name: 'Deletar Usuário', module: 'users', description: 'Permite deletar usuários' },
     { code: 'users.manage_permissions', name: 'Gerenciar Permissões', module: 'users', description: 'Permite gerenciar permissões de usuários' },
 
+    // Permissões de Notificações
+    { code: 'notifications.read', name: 'Visualizar Notificações', module: 'notifications', description: 'Permite visualizar próprias notificações' },
+    { code: 'notifications.manage_types', name: 'Gerenciar Tipos', module: 'notifications', description: 'Admin: criar/editar tipos de notificação' },
+    { code: 'notifications.manage_settings', name: 'Gerenciar Configurações de Usuários', module: 'notifications', description: 'Admin: configurar notificações de outros usuários' },
+
     // Permissão Admin
     { code: 'admin.all', name: 'Administrador Total', module: 'admin', description: 'Acesso total ao sistema' },
   ];
@@ -93,40 +98,32 @@ async function main() {
     },
   });
 
-  // Dar apenas permissões de leitura e criação de INC
-  const incReadPermission = allPermissions.find(p => p.code === 'inc.read');
-  const incCreatePermission = allPermissions.find(p => p.code === 'inc.create');
+  // Dar permissões de leitura, criação de INC, RNC e notificações ao usuário teste
+  const testUserPermissions = [
+    'inc.read',
+    'inc.create',
+    'rnc.read',
+    'rnc.create',
+    'notifications.read',
+  ];
 
-  if (incReadPermission) {
-    await prisma.userPermission.upsert({
-      where: {
-        userId_permissionId: {
-          userId: testUser.id,
-          permissionId: incReadPermission.id,
+  for (const permCode of testUserPermissions) {
+    const permission = allPermissions.find(p => p.code === permCode);
+    if (permission) {
+      await prisma.userPermission.upsert({
+        where: {
+          userId_permissionId: {
+            userId: testUser.id,
+            permissionId: permission.id,
+          },
         },
-      },
-      update: {},
-      create: {
-        userId: testUser.id,
-        permissionId: incReadPermission.id,
-      },
-    });
-  }
-
-  if (incCreatePermission) {
-    await prisma.userPermission.upsert({
-      where: {
-        userId_permissionId: {
+        update: {},
+        create: {
           userId: testUser.id,
-          permissionId: incCreatePermission.id,
+          permissionId: permission.id,
         },
-      },
-      update: {},
-      create: {
-        userId: testUser.id,
-        permissionId: incCreatePermission.id,
-      },
-    });
+      });
+    }
   }
 
   console.log('✅ Seed concluído com sucesso!');

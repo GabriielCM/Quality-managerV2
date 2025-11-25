@@ -24,6 +24,8 @@ model User {
   incs        Inc[]
   rncs        Rnc[]
   rncHistoricos RncHistorico[]
+  notificationSettings UserNotificationSetting[]
+  notifications        Notification[]
 
   @@map("users")
 }
@@ -182,4 +184,68 @@ model RncHistorico {
   updatedAt DateTime @updatedAt
 
   @@map("rnc_historico")
+}
+
+// Módulo de Notificações
+// Tipo de notificação (template/configuração)
+model NotificationType {
+  id          String   @id @default(uuid())
+  codigo      String   @unique // "rnc_prazo_2dias", "rnc_prazo_1dia"
+  nome        String   // "RNC - Prazo 2 Dias"
+  descricao   String   // Descrição detalhada
+  modulo      String   // "rnc", "inc", etc
+  canal       String   @default("sistema") // "sistema", "email" (futuro)
+  ativo       Boolean  @default(true) // Admin pode desativar globalmente
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userSettings  UserNotificationSetting[]
+  notifications Notification[]
+
+  @@map("notification_types")
+}
+
+// Configurações de notificação por usuário
+model UserNotificationSetting {
+  id                 String   @id @default(uuid())
+  userId             String
+  notificationTypeId String
+  habilitado         Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notificationType NotificationType @relation(fields: [notificationTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, notificationTypeId])
+  @@map("user_notification_settings")
+}
+
+// Instância de notificação enviada
+model Notification {
+  id                 String   @id @default(uuid())
+  notificationTypeId String
+  userId             String
+  titulo             String
+  mensagem           String
+  urgente            Boolean  @default(false)
+  lida               Boolean  @default(false)
+  dataLeitura        DateTime?
+
+  // Contexto para navegação
+  entityType         String?  // "rnc", "inc"
+  entityId           String?
+
+  // Prevenção de duplicatas
+  uniqueKey          String   @unique
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  notificationType NotificationType @relation(fields: [notificationTypeId], references: [id])
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, lida])
+  @@index([createdAt])
+  @@map("notifications")
 }

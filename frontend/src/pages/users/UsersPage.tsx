@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Shield } from 'lucide-react';
+import { Plus, Edit, Trash2, Shield, Bell } from 'lucide-react';
 import UserModal from './UserModal';
 import PermissionsModal from './PermissionsModal';
+import NotificationSettingsModal from './NotificationSettingsModal';
 
 interface User {
   id: string;
@@ -20,12 +21,14 @@ export default function UsersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
+  const [isNotificationSettingsModalOpen, setIsNotificationSettingsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   const canCreate = hasPermission('users.create');
   const canUpdate = hasPermission('users.update');
   const canDelete = hasPermission('users.delete');
   const canManagePermissions = hasPermission('users.manage_permissions');
+  const canManageNotifications = hasPermission('notifications.manage_settings');
 
   useEffect(() => {
     loadUsers();
@@ -58,6 +61,11 @@ export default function UsersPage() {
   const handleManagePermissions = (user: User) => {
     setSelectedUser(user);
     setIsPermissionsModalOpen(true);
+  };
+
+  const handleManageNotifications = (user: User) => {
+    setSelectedUser(user);
+    setIsNotificationSettingsModalOpen(true);
   };
 
   if (!hasPermission('users.read')) {
@@ -146,6 +154,15 @@ export default function UsersPage() {
                             <Shield className="w-5 h-5" />
                           </button>
                         )}
+                        {canManageNotifications && (
+                          <button
+                            onClick={() => handleManageNotifications(user)}
+                            className="text-yellow-600 hover:text-yellow-900"
+                            title="Configurar Notificações"
+                          >
+                            <Bell className="w-5 h-5" />
+                          </button>
+                        )}
                         {canUpdate && (
                           <button
                             onClick={() => {
@@ -202,6 +219,16 @@ export default function UsersPage() {
           onSuccess={() => {
             loadUsers();
             setIsPermissionsModalOpen(false);
+            setSelectedUser(null);
+          }}
+        />
+      )}
+
+      {isNotificationSettingsModalOpen && selectedUser && (
+        <NotificationSettingsModal
+          user={selectedUser}
+          onClose={() => {
+            setIsNotificationSettingsModalOpen(false);
             setSelectedUser(null);
           }}
         />

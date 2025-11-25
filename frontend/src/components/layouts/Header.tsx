@@ -1,6 +1,7 @@
 import { useAuthStore } from '@/stores/authStore';
 import { LogOut, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import NotificationBell from '../NotificationBell';
 
 export default function Header() {
   const { user, logout } = useAuthStore();
@@ -25,6 +26,8 @@ export default function Header() {
             <User className="w-4 h-4" />
             <span>{user?.email}</span>
           </div>
+
+          <NotificationBell />
 
           <button
             onClick={handleLogout}
