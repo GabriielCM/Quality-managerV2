@@ -57,7 +57,7 @@ export class DevolucaoController {
   }
 
   @Post(':id/emitir-nfe')
-  @Permissions('devolucao.update', 'admin.all')
+  @Permissions('devolucao.emitir_nfe', 'admin.all')
   @UseInterceptors(
     FileInterceptor('nfePdf', {
       storage: diskStorage({
@@ -106,7 +106,7 @@ export class DevolucaoController {
   }
 
   @Post(':id/confirmar-coleta')
-  @Permissions('devolucao.update', 'admin.all')
+  @Permissions('devolucao.confirmar_coleta', 'admin.all')
   @ApiOperation({ summary: 'Etapa 3a: Confirmar coleta da mercadoria' })
   confirmarColeta(@Param('id') id: string, @Request() req) {
     const userId = req.user?.userId;
@@ -114,7 +114,7 @@ export class DevolucaoController {
   }
 
   @Post(':id/confirmar-recebimento')
-  @Permissions('devolucao.update', 'admin.all')
+  @Permissions('devolucao.confirmar_recebimento', 'admin.all')
   @ApiOperation({ summary: 'Etapa 3b: Confirmar recebimento da mercadoria' })
   confirmarRecebimento(@Param('id') id: string, @Request() req) {
     const userId = req.user?.userId;
@@ -122,7 +122,7 @@ export class DevolucaoController {
   }
 
   @Post(':id/confirmar-compensacao')
-  @Permissions('devolucao.update', 'admin.all')
+  @Permissions('devolucao.confirmar_compensacao', 'admin.all')
   @ApiOperation({ summary: 'Etapa 4: Confirmar compensação fiscal (finaliza)' })
   confirmarCompensacao(@Param('id') id: string, @Request() req) {
     const userId = req.user?.userId;

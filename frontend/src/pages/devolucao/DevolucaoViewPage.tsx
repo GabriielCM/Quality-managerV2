@@ -11,7 +11,7 @@ import EmitirNfeModal from '@/components/devolucao/EmitirNfeModal';
 export default function DevolucaoViewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { hasPermission } = useAuthStore();
+  const { hasPermission, hasAnyPermission } = useAuthStore();
 
   const [devolucao, setDevolucao] = useState<Devolucao | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -20,7 +20,10 @@ export default function DevolucaoViewPage() {
     action: 'coleta' | 'recebimento' | 'compensacao' | null;
   }>({ action: null });
 
-  const canUpdate = hasPermission('devolucao.update');
+  const canEmitirNfe = hasAnyPermission(['devolucao.emitir_nfe', 'admin.all']);
+  const canConfirmarColeta = hasAnyPermission(['devolucao.confirmar_coleta', 'admin.all']);
+  const canConfirmarRecebimento = hasAnyPermission(['devolucao.confirmar_recebimento', 'admin.all']);
+  const canConfirmarCompensacao = hasAnyPermission(['devolucao.confirmar_compensacao', 'admin.all']);
 
   useEffect(() => {
     if (id) {
@@ -191,29 +194,21 @@ export default function DevolucaoViewPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={() => navigate('/devolucao')}
-            className="text-gray-600 hover:text-gray-900"
-          >
-            <ArrowLeft className="w-6 h-6" />
-          </button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Devolução - RNC {devolucao.rnc?.numero}
-            </h1>
-            <p className="text-gray-600 mt-1">
-              Visualização completa da devolução
-            </p>
-          </div>
+      <div className="flex items-center space-x-4">
+        <button
+          onClick={() => navigate('/devolucao')}
+          className="text-gray-600 hover:text-gray-900"
+        >
+          <ArrowLeft className="w-6 h-6" />
+        </button>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Devolução - RNC {devolucao.rnc?.numero}
+          </h1>
+          <p className="text-gray-600 mt-1">
+            Visualização completa da devolução
+          </p>
         </div>
-        {devolucao.nfePdfPath && (
-          <button onClick={handleDownloadPdf} className="btn btn-secondary flex items-center space-x-2">
-            <Download className="w-5 h-5" />
-            <span>Download NF-e PDF</span>
-          </button>
-        )}
       </div>
 
       <TimelineStepper currentStatus={devolucao.status} steps={timelineSteps} />
@@ -227,7 +222,7 @@ export default function DevolucaoViewPage() {
       </div>
 
       {/* Dynamic Action Panels */}
-      {canUpdate && devolucao.status === DevolucaoStatus.DEVOLUCAO_SOLICITADA && (
+      {canEmitirNfe && devolucao.status === DevolucaoStatus.DEVOLUCAO_SOLICITADA && (
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
           <div className="flex items-center space-x-3 mb-4">
             <FileText className="w-6 h-6 text-blue-600" />
@@ -247,7 +242,7 @@ export default function DevolucaoViewPage() {
         </div>
       )}
 
-      {canUpdate && devolucao.status === DevolucaoStatus.NFE_EMITIDA && (
+      {canConfirmarColeta && devolucao.status === DevolucaoStatus.NFE_EMITIDA && (
         <div className="bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200 rounded-lg p-6">
           <div className="flex items-center space-x-3 mb-4">
             <Package className="w-6 h-6 text-cyan-600" />
@@ -267,7 +262,7 @@ export default function DevolucaoViewPage() {
         </div>
       )}
 
-      {canUpdate && devolucao.status === DevolucaoStatus.DEVOLUCAO_COLETADA && (
+      {canConfirmarRecebimento && devolucao.status === DevolucaoStatus.DEVOLUCAO_COLETADA && (
         <div className="bg-gradient-to-r from-teal-50 to-cyan-50 border border-teal-200 rounded-lg p-6">
           <div className="flex items-center space-x-3 mb-4">
             <CheckCircle2 className="w-6 h-6 text-teal-600" />
@@ -287,7 +282,7 @@ export default function DevolucaoViewPage() {
         </div>
       )}
 
-      {canUpdate && devolucao.status === DevolucaoStatus.DEVOLUCAO_RECEBIDA && (
+      {canConfirmarCompensacao && devolucao.status === DevolucaoStatus.DEVOLUCAO_RECEBIDA && (
         <div className="bg-gradient-to-r from-green-50 to-teal-50 border border-green-200 rounded-lg p-6">
           <div className="flex items-center space-x-3 mb-4">
             <CheckCircle2 className="w-6 h-6 text-green-600" />
@@ -386,75 +381,143 @@ export default function DevolucaoViewPage() {
         </div>
       </div>
 
-      {(devolucao.nfeNumero || devolucao.dataColeta || devolucao.dataRecebimento || devolucao.dataCompensacao) && (
-        <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Rastreamento e Datas
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {devolucao.nfeNumero && (
-              <>
-                <div>
-                  <span className="text-gray-600">Número NF-e:</span>{' '}
-                  <span className="font-medium">{devolucao.nfeNumero}</span>
-                </div>
-                <div>
-                  <span className="text-gray-600">NF-e Emitida em:</span>{' '}
-                  <span className="font-medium">
-                    {devolucao.nfeEmitidaEm && new Date(devolucao.nfeEmitidaEm).toLocaleString('pt-BR')}
-                  </span>
-                </div>
-                <div className="col-span-2">
-                  <span className="text-gray-600">Emitida por:</span>{' '}
-                  <span className="font-medium">{devolucao.nfeEmitidaPor?.nome}</span>
-                </div>
-              </>
-            )}
-            {devolucao.dataColeta && (
-              <>
-                <div>
-                  <span className="text-gray-600">Data de Coleta:</span>{' '}
-                  <span className="font-medium">
-                    {new Date(devolucao.dataColeta).toLocaleString('pt-BR')}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-600">Confirmada por:</span>{' '}
-                  <span className="font-medium">{devolucao.coletaConfirmadaPor?.nome}</span>
-                </div>
-              </>
-            )}
-            {devolucao.dataRecebimento && (
-              <>
-                <div>
-                  <span className="text-gray-600">Data de Recebimento:</span>{' '}
-                  <span className="font-medium">
-                    {new Date(devolucao.dataRecebimento).toLocaleString('pt-BR')}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-600">Confirmado por:</span>{' '}
-                  <span className="font-medium">{devolucao.recebimentoConfirmadoPor?.nome}</span>
-                </div>
-              </>
-            )}
-            {devolucao.dataCompensacao && (
-              <>
-                <div>
-                  <span className="text-gray-600">Data de Compensação:</span>{' '}
-                  <span className="font-medium">
-                    {new Date(devolucao.dataCompensacao).toLocaleString('pt-BR')}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-600">Confirmado por:</span>{' '}
-                  <span className="font-medium">{devolucao.compensacaoConfirmadaPor?.nome}</span>
-                </div>
-              </>
-            )}
+      {/* Rastreamento e Datas - Seções Separadas por Etapa */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold text-gray-900">Rastreamento e Datas</h2>
+
+        {/* Etapa 1: Solicitação de Devolução */}
+        <div className="card border-l-4 border-blue-500">
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="bg-blue-100 p-2 rounded-full">
+              <FileText className="w-5 h-5 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">Etapa 1: Solicitação de Devolução</h3>
+          </div>
+          <div className="space-y-2 ml-11">
+            <div>
+              <span className="text-gray-600">Criada em:</span>{' '}
+              <span className="font-medium">
+                {new Date(devolucao.createdAt).toLocaleString('pt-BR')}
+              </span>
+            </div>
+            <div>
+              <span className="text-gray-600">Criada por:</span>{' '}
+              <span className="font-medium">{devolucao.criadoPor?.nome}</span>
+            </div>
           </div>
         </div>
-      )}
+
+        {/* Etapa 2: Emissão de NF-e */}
+        {devolucao.nfeNumero && (
+          <div className="card border-l-4 border-indigo-500">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="bg-indigo-100 p-2 rounded-full">
+                <FileText className="w-5 h-5 text-indigo-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Etapa 2: Emissão de NF-e</h3>
+            </div>
+            <div className="space-y-2 ml-11">
+              <div>
+                <span className="text-gray-600">Número NF-e:</span>{' '}
+                <span className="font-medium">{devolucao.nfeNumero}</span>
+              </div>
+              <div>
+                <span className="text-gray-600">Emitida em:</span>{' '}
+                <span className="font-medium">
+                  {devolucao.nfeEmitidaEm && new Date(devolucao.nfeEmitidaEm).toLocaleString('pt-BR')}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-600">Emitida por:</span>{' '}
+                <span className="font-medium">{devolucao.nfeEmitidaPor?.nome}</span>
+              </div>
+              {devolucao.nfePdfPath && (
+                <div className="mt-3">
+                  <button
+                    onClick={handleDownloadPdf}
+                    className="btn btn-secondary btn-sm flex items-center space-x-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Baixar PDF da NF-e</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Etapa 3a: Coleta */}
+        {devolucao.dataColeta && (
+          <div className="card border-l-4 border-cyan-500">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="bg-cyan-100 p-2 rounded-full">
+                <Package className="w-5 h-5 text-cyan-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Etapa 3a: Coleta da Mercadoria</h3>
+            </div>
+            <div className="space-y-2 ml-11">
+              <div>
+                <span className="text-gray-600">Coletada em:</span>{' '}
+                <span className="font-medium">
+                  {new Date(devolucao.dataColeta).toLocaleString('pt-BR')}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-600">Confirmada por:</span>{' '}
+                <span className="font-medium">{devolucao.coletaConfirmadaPor?.nome}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Etapa 3b: Recebimento */}
+        {devolucao.dataRecebimento && (
+          <div className="card border-l-4 border-teal-500">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="bg-teal-100 p-2 rounded-full">
+                <CheckCircle2 className="w-5 h-5 text-teal-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Etapa 3b: Recebimento da Mercadoria</h3>
+            </div>
+            <div className="space-y-2 ml-11">
+              <div>
+                <span className="text-gray-600">Recebida em:</span>{' '}
+                <span className="font-medium">
+                  {new Date(devolucao.dataRecebimento).toLocaleString('pt-BR')}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-600">Confirmada por:</span>{' '}
+                <span className="font-medium">{devolucao.recebimentoConfirmadoPor?.nome}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Etapa 4: Compensação Fiscal */}
+        {devolucao.dataCompensacao && (
+          <div className="card border-l-4 border-green-500">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="bg-green-100 p-2 rounded-full">
+                <CheckCircle2 className="w-5 h-5 text-green-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Etapa 4: Compensação Fiscal</h3>
+            </div>
+            <div className="space-y-2 ml-11">
+              <div>
+                <span className="text-gray-600">Compensada em:</span>{' '}
+                <span className="font-medium">
+                  {new Date(devolucao.dataCompensacao).toLocaleString('pt-BR')}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-600">Confirmada por:</span>{' '}
+                <span className="font-medium">{devolucao.compensacaoConfirmadaPor?.nome}</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Confirmation Modals - To be implemented in separate component files */}
       {showConfirmModal.action && (

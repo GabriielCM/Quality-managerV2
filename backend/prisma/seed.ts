@@ -30,7 +30,10 @@ async function main() {
     // Permissões de Devolução
     { code: 'devolucao.create', name: 'Criar Devolução', module: 'devolucao', description: 'Permite criar solicitações de devolução' },
     { code: 'devolucao.read', name: 'Visualizar Devolução', module: 'devolucao', description: 'Permite visualizar devoluções' },
-    { code: 'devolucao.update', name: 'Editar Devolução', module: 'devolucao', description: 'Permite atualizar status de devoluções' },
+    { code: 'devolucao.emitir_nfe', name: 'Emitir NF-e', module: 'devolucao', description: 'Permite emitir nota fiscal eletrônica de devolução' },
+    { code: 'devolucao.confirmar_coleta', name: 'Confirmar Coleta', module: 'devolucao', description: 'Permite confirmar coleta da mercadoria' },
+    { code: 'devolucao.confirmar_recebimento', name: 'Confirmar Recebimento', module: 'devolucao', description: 'Permite confirmar recebimento da mercadoria' },
+    { code: 'devolucao.confirmar_compensacao', name: 'Confirmar Compensação', module: 'devolucao', description: 'Permite confirmar compensação fiscal' },
     { code: 'devolucao.delete', name: 'Deletar Devolução', module: 'devolucao', description: 'Permite deletar devoluções' },
 
     // Permissões de Usuários
