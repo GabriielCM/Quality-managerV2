@@ -27,6 +27,12 @@ async function main() {
     { code: 'rnc.delete', name: 'Deletar RNC', module: 'rnc', description: 'Permite deletar relatórios de não conformidade' },
     { code: 'rnc.approve', name: 'Aprovar por Concessão', module: 'rnc', description: 'Permite aprovar INC por concessão' },
 
+    // Permissões de Devolução
+    { code: 'devolucao.create', name: 'Criar Devolução', module: 'devolucao', description: 'Permite criar solicitações de devolução' },
+    { code: 'devolucao.read', name: 'Visualizar Devolução', module: 'devolucao', description: 'Permite visualizar devoluções' },
+    { code: 'devolucao.update', name: 'Editar Devolução', module: 'devolucao', description: 'Permite atualizar status de devoluções' },
+    { code: 'devolucao.delete', name: 'Deletar Devolução', module: 'devolucao', description: 'Permite deletar devoluções' },
+
     // Permissões de Usuários
     { code: 'users.create', name: 'Criar Usuário', module: 'users', description: 'Permite criar novos usuários' },
     { code: 'users.read', name: 'Visualizar Usuários', module: 'users', description: 'Permite visualizar usuários' },

@@ -18,6 +18,9 @@ import RncAnalysisPage from '@/pages/rnc/RncAnalysisPage';
 import RncCreatePage from '@/pages/rnc/RncCreatePage';
 import RncListPage from '@/pages/rnc/RncListPage';
 import RncViewPage from '@/pages/rnc/RncViewPage';
+import DevolucaoListPage from '@/pages/devolucao/DevolucaoListPage';
+import DevolucaoCreatePage from '@/pages/devolucao/DevolucaoCreatePage';
+import DevolucaoViewPage from '@/pages/devolucao/DevolucaoViewPage';
 import NotificationsPage from '@/pages/notifications/NotificationsPage';
 
 function App() {
@@ -79,6 +82,13 @@ function App() {
             <Route path="analysis" element={<RncAnalysisPage />} />
             <Route path="create" element={<RncCreatePage />} />
             <Route path=":id" element={<RncViewPage />} />
+          </Route>
+
+          {/* Devolução */}
+          <Route path="devolucao">
+            <Route index element={<DevolucaoListPage />} />
+            <Route path="create" element={<DevolucaoCreatePage />} />
+            <Route path=":id" element={<DevolucaoViewPage />} />
           </Route>
         </Route>
 

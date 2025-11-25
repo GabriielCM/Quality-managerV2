@@ -9,6 +9,7 @@ import { PermissionsModule } from './modules/permissions/permissions.module';
 import { FornecedoresModule } from './modules/fornecedores/fornecedores.module';
 import { RncModule } from './modules/rnc/rnc.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { DevolucaoModule } from './modules/devolucao/devolucao.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     FornecedoresModule,
     RncModule,
     NotificationsModule,
+    DevolucaoModule,
   ],
 })
 export class AppModule {}

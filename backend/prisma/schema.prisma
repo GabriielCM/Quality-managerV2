@@ -26,6 +26,11 @@ model User {
   rncHistoricos RncHistorico[]
   notificationSettings UserNotificationSetting[]
   notifications        Notification[]
+  devolucoesCriadas               Devolucao[] @relation("DevolucaoCriadoPor")
+  devolucoesNfeEmitida            Devolucao[] @relation("DevolucaoNfeEmitidaPor")
+  devolucoesColetaConfirmada      Devolucao[] @relation("DevolucaoColetaConfirmadaPor")
+  devolucoesRecebimentoConfirmado Devolucao[] @relation("DevolucaoRecebimentoConfirmadaPor")
+  devolucoesCompensacaoConfirmada Devolucao[] @relation("DevolucaoCompensacaoConfirmadaPor")
 
   @@map("users")
 }
@@ -121,6 +126,16 @@ model Fornecedor {
   @@map("fornecedores")
 }
 
+// Enum para status de devolução
+enum DevolucaoStatus {
+  RNC_ACEITA
+  DEVOLUCAO_SOLICITADA
+  NFE_EMITIDA
+  DEVOLUCAO_COLETADA
+  DEVOLUCAO_RECEBIDA
+  FINALIZADO
+}
+
 // Módulo RNC (Relatório de Não Conformidade)
 model Rnc {
   id                       String   @id @default(uuid())
@@ -156,6 +171,7 @@ model Rnc {
   rncAnterior  Rnc?        @relation("RncReincidente", fields: [rncAnteriorId], references: [id])
   rncsFilhas   Rnc[]       @relation("RncReincidente")
   historico    RncHistorico[]
+  devolucao    Devolucao?
 
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
@@ -184,6 +200,55 @@ model RncHistorico {
   updatedAt DateTime @updatedAt
 
   @@map("rnc_historico")
+}
+
+// Módulo de Devolução
+model Devolucao {
+  id                   String          @id @default(uuid())
+  rncId                String          @unique  // Relacionamento 1:1 com RNC
+
+  // Etapa 1 - Solicitação de Faturamento
+  arOrigem             Int
+  quantidadeTotal      Float
+  pesoKg               Float
+  motivo               String
+  transportadora       String
+  frete                String          // "FOB" ou "CIF"
+  meioCompensacao      String
+
+  // Etapa 2 - Emissão da NF-e
+  nfeNumero            String?
+  nfePdfPath           String?
+  nfeEmitidaPorId      String?
+  nfeEmitidaEm         DateTime?
+
+  // Etapa 3a - Confirmação de Coleta
+  dataColeta           DateTime?
+  coletaConfirmadaPorId String?
+
+  // Etapa 3b - Confirmação de Recebimento
+  dataRecebimento      DateTime?
+  recebimentoConfirmadoPorId String?
+
+  // Etapa 4 - Compensação Fiscal
+  dataCompensacao      DateTime?
+  compensacaoConfirmadaPorId String?
+
+  // Controle
+  status               DevolucaoStatus @default(RNC_ACEITA)
+  criadoPorId          String
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+
+  // Relacionamentos
+  rnc                  Rnc             @relation(fields: [rncId], references: [id], onDelete: Cascade)
+  criadoPor            User            @relation("DevolucaoCriadoPor", fields: [criadoPorId], references: [id])
+  nfeEmitidaPor        User?           @relation("DevolucaoNfeEmitidaPor", fields: [nfeEmitidaPorId], references: [id])
+  coletaConfirmadaPor  User?           @relation("DevolucaoColetaConfirmadaPor", fields: [coletaConfirmadaPorId], references: [id])
+  recebimentoConfirmadoPor User?       @relation("DevolucaoRecebimentoConfirmadaPor", fields: [recebimentoConfirmadoPorId], references: [id])
+  compensacaoConfirmadaPor User?       @relation("DevolucaoCompensacaoConfirmadaPor", fields: [compensacaoConfirmadaPorId], references: [id])
+
+  @@map("devolucoes")
 }
 
 // Módulo de Notificações
