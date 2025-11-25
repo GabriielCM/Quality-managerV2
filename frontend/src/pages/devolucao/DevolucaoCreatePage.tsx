@@ -5,6 +5,7 @@ import { toast } from 'react-hot-toast';
 import { devolucaoApi } from '@/services/api/devolucao';
 import { rncApi } from '@/services/api/rnc';
 import { Rnc } from '@/types/rnc';
+import { MeioCompensacao } from '@/types/devolucao';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function DevolucaoCreatePage() {
@@ -23,7 +24,7 @@ export default function DevolucaoCreatePage() {
     motivo: '',
     transportadora: '',
     frete: 'FOB',
-    meioCompensacao: '',
+    meioCompensacao: '' as MeioCompensacao | '',
   });
 
   useEffect(() => {
@@ -299,17 +300,23 @@ export default function DevolucaoCreatePage() {
                   <label htmlFor="meioCompensacao" className="label">
                     Meio de Compensação <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="text"
+                  <select
                     id="meioCompensacao"
                     value={formData.meioCompensacao}
                     onChange={(e) =>
-                      setFormData({ ...formData, meioCompensacao: e.target.value })
+                      setFormData({ ...formData, meioCompensacao: e.target.value as MeioCompensacao })
                     }
                     className="input"
-                    placeholder="Ex: Transferência direta, compensação em pagamentos futuros"
                     required
-                  />
+                  >
+                    <option value="">Selecione...</option>
+                    <option value={MeioCompensacao.TRANSFERENCIA_DIRETA}>
+                      Transferência Direta
+                    </option>
+                    <option value={MeioCompensacao.COMPENSACAO_PAGAMENTOS_FUTUROS}>
+                      Compensação em Pagamentos Futuros
+                    </option>
+                  </select>
                 </div>
               </>
             )}

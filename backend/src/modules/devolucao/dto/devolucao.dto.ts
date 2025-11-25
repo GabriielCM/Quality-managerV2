@@ -19,6 +19,11 @@ export enum DevolucaoStatus {
   FINALIZADO = 'FINALIZADO',
 }
 
+export enum MeioCompensacao {
+  TRANSFERENCIA_DIRETA = 'TRANSFERENCIA_DIRETA',
+  COMPENSACAO_PAGAMENTOS_FUTUROS = 'COMPENSACAO_PAGAMENTOS_FUTUROS',
+}
+
 export class CreateDevolucaoDto {
   @ApiProperty({ description: 'ID da RNC com status "RNC aceita"' })
   @IsUUID()
@@ -47,9 +52,12 @@ export class CreateDevolucaoDto {
   @IsIn(['FOB', 'CIF'])
   frete: string;
 
-  @ApiProperty({ description: 'Meio de compensação' })
-  @IsString()
-  meioCompensacao: string;
+  @ApiProperty({
+    description: 'Meio de compensação',
+    enum: MeioCompensacao,
+  })
+  @IsEnum(MeioCompensacao)
+  meioCompensacao: MeioCompensacao;
 }
 
 export class EmitirNfeDto {

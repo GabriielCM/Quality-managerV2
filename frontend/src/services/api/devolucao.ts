@@ -58,15 +58,31 @@ export const devolucaoApi = {
     return response.data;
   },
 
-  async confirmarCompensacao(id: string): Promise<Devolucao> {
+  async confirmarCompensacao(id: string, file: File): Promise<Devolucao> {
+    const formData = new FormData();
+    formData.append('comprovante', file);
+
     const response = await api.post<Devolucao>(
       `/devolucao/${id}/confirmar-compensacao`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      },
     );
     return response.data;
   },
 
   async downloadNfePdf(id: string): Promise<Blob> {
     const response = await api.get(`/devolucao/${id}/nfe-pdf`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  async downloadComprovante(id: string): Promise<Blob> {
+    const response = await api.get(`/devolucao/${id}/comprovante`, {
       responseType: 'blob',
     });
     return response.data;

@@ -7,6 +7,7 @@ import { Devolucao, DevolucaoStatus } from '@/types/devolucao';
 import { useAuthStore } from '@/stores/authStore';
 import TimelineStepper from '@/components/devolucao/TimelineStepper';
 import EmitirNfeModal from '@/components/devolucao/EmitirNfeModal';
+import ConfirmarCompensacaoModal from '@/components/devolucao/ConfirmarCompensacaoModal';
 
 export default function DevolucaoViewPage() {
   const { id } = useParams<{ id: string }>();
@@ -16,8 +17,9 @@ export default function DevolucaoViewPage() {
   const [devolucao, setDevolucao] = useState<Devolucao | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showEmitirNfeModal, setShowEmitirNfeModal] = useState(false);
+  const [showConfirmarCompensacaoModal, setShowConfirmarCompensacaoModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState<{
-    action: 'coleta' | 'recebimento' | 'compensacao' | null;
+    action: 'coleta' | 'recebimento' | null;
   }>({ action: null });
 
   const canEmitirNfe = hasAnyPermission(['devolucao.emitir_nfe', 'admin.all']);
@@ -59,6 +61,21 @@ export default function DevolucaoViewPage() {
     }
   };
 
+  const handleDownloadComprovante = async () => {
+    if (!devolucao) return;
+    try {
+      const blob = await devolucaoApi.downloadComprovante(devolucao.id);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `comprovante-compensacao-${devolucao.rnc?.numero}`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      toast.error('Erro ao baixar comprovante');
+    }
+  };
+
   const handleConfirmarColeta = async () => {
     if (!devolucao) return;
     try {
@@ -83,15 +100,15 @@ export default function DevolucaoViewPage() {
     }
   };
 
-  const handleConfirmarCompensacao = async () => {
+  const handleConfirmarCompensacao = async (file: File) => {
     if (!devolucao) return;
     try {
-      await devolucaoApi.confirmarCompensacao(devolucao.id);
+      await devolucaoApi.confirmarCompensacao(devolucao.id, file);
       toast.success('Compensação fiscal confirmada com sucesso');
       loadDevolucao(devolucao.id);
-      setShowConfirmModal({ action: null });
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Erro ao confirmar compensação');
+      throw error;
     }
   };
 
@@ -291,10 +308,10 @@ export default function DevolucaoViewPage() {
             </h3>
           </div>
           <p className="text-gray-700 mb-4">
-            Confirme que a compensação fiscal foi realizada. Isso finalizará o processo.
+            Confirme que a compensação fiscal foi realizada e anexe o comprovante. Isso finalizará o processo.
           </p>
           <button
-            onClick={() => setShowConfirmModal({ action: 'compensacao' })}
+            onClick={() => setShowConfirmarCompensacaoModal(true)}
             className="btn btn-success"
           >
             Confirmar Compensação Fiscal
@@ -514,19 +531,29 @@ export default function DevolucaoViewPage() {
                 <span className="text-gray-600">Confirmada por:</span>{' '}
                 <span className="font-medium">{devolucao.compensacaoConfirmadaPor?.nome}</span>
               </div>
+              {devolucao.comprovantePath && (
+                <div className="mt-3">
+                  <button
+                    onClick={handleDownloadComprovante}
+                    className="btn btn-secondary btn-sm flex items-center space-x-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Baixar Comprovante</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
       </div>
 
-      {/* Confirmation Modals - To be implemented in separate component files */}
+      {/* Confirmation Modals */}
       {showConfirmModal.action && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
             <h3 className="text-lg font-semibold mb-4">
               {showConfirmModal.action === 'coleta' && 'Confirmar Coleta'}
               {showConfirmModal.action === 'recebimento' && 'Confirmar Recebimento'}
-              {showConfirmModal.action === 'compensacao' && 'Confirmar Compensação Fiscal'}
             </h3>
             <p className="text-gray-600 mb-6">
               Tem certeza que deseja confirmar esta ação? Esta operação não pode ser desfeita.
@@ -542,7 +569,6 @@ export default function DevolucaoViewPage() {
                 onClick={() => {
                   if (showConfirmModal.action === 'coleta') handleConfirmarColeta();
                   if (showConfirmModal.action === 'recebimento') handleConfirmarRecebimento();
-                  if (showConfirmModal.action === 'compensacao') handleConfirmarCompensacao();
                 }}
                 className="btn btn-primary"
               >
@@ -557,6 +583,13 @@ export default function DevolucaoViewPage() {
         isOpen={showEmitirNfeModal}
         onClose={() => setShowEmitirNfeModal(false)}
         onSubmit={handleEmitirNfe}
+        devolucaoId={devolucao.id}
+      />
+
+      <ConfirmarCompensacaoModal
+        isOpen={showConfirmarCompensacaoModal}
+        onClose={() => setShowConfirmarCompensacaoModal(false)}
+        onSubmit={handleConfirmarCompensacao}
         devolucaoId={devolucao.id}
       />
     </div>

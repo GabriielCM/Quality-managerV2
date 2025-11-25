@@ -136,6 +136,12 @@ enum DevolucaoStatus {
   FINALIZADO
 }
 
+// Enum para meio de compensação
+enum MeioCompensacao {
+  TRANSFERENCIA_DIRETA
+  COMPENSACAO_PAGAMENTOS_FUTUROS
+}
+
 // Módulo RNC (Relatório de Não Conformidade)
 model Rnc {
   id                       String   @id @default(uuid())
@@ -214,7 +220,7 @@ model Devolucao {
   motivo               String
   transportadora       String
   frete                String          // "FOB" ou "CIF"
-  meioCompensacao      String
+  meioCompensacao      MeioCompensacao
 
   // Etapa 2 - Emissão da NF-e
   nfeNumero            String?
@@ -232,6 +238,7 @@ model Devolucao {
 
   // Etapa 4 - Compensação Fiscal
   dataCompensacao      DateTime?
+  comprovantePath      String?         // Caminho do comprovante (PDF ou imagem)
   compensacaoConfirmadaPorId String?
 
   // Controle

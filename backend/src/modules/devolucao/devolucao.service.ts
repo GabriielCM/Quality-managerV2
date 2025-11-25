@@ -321,7 +321,11 @@ export class DevolucaoService {
   }
 
   // 7. CONFIRMAR COMPENSAÇÃO - Etapa 4 (Final)
-  async confirmarCompensacao(id: string, userId: string) {
+  async confirmarCompensacao(
+    id: string,
+    file: Express.Multer.File,
+    userId: string,
+  ) {
     const devolucao = await this.findOne(id);
 
     // Validar status
@@ -330,10 +334,17 @@ export class DevolucaoService {
       DevolucaoStatus.DEVOLUCAO_RECEBIDA,
     );
 
+    if (!file) {
+      throw new BadRequestException(
+        'Comprovante de compensação é obrigatório',
+      );
+    }
+
     const updated = await this.prisma.devolucao.update({
       where: { id },
       data: {
         dataCompensacao: new Date(),
+        comprovantePath: file.path,
         compensacaoConfirmadaPorId: userId,
         status: DevolucaoStatus.FINALIZADO,
       },
@@ -382,13 +393,33 @@ export class DevolucaoService {
     return filepath;
   }
 
-  // 9. REMOVE - Deletar devolução (com cleanup de arquivo)
+  // 9. DOWNLOAD COMPROVANTE DE COMPENSAÇÃO
+  async downloadComprovante(id: string): Promise<string> {
+    const devolucao = await this.findOne(id);
+
+    if (!devolucao.comprovantePath) {
+      throw new NotFoundException('Comprovante não encontrado');
+    }
+
+    const filepath = path.join(this.uploadPath, devolucao.comprovantePath);
+
+    if (!fs.existsSync(filepath)) {
+      throw new NotFoundException('Arquivo de comprovante não encontrado no servidor');
+    }
+
+    return filepath;
+  }
+
+  // 10. REMOVE - Deletar devolução (com cleanup de arquivo)
   async remove(id: string) {
     const devolucao = await this.findOne(id);
 
-    // Deletar arquivo físico se existir
+    // Deletar arquivos físicos se existirem
     if (devolucao.nfePdfPath) {
       this.deleteFile(devolucao.nfePdfPath);
+    }
+    if (devolucao.comprovantePath) {
+      this.deleteFile(devolucao.comprovantePath);
     }
 
     // Deletar do banco

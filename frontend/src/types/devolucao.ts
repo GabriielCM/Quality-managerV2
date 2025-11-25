@@ -9,6 +9,11 @@ export enum DevolucaoStatus {
   FINALIZADO = 'FINALIZADO',
 }
 
+export enum MeioCompensacao {
+  TRANSFERENCIA_DIRETA = 'TRANSFERENCIA_DIRETA',
+  COMPENSACAO_PAGAMENTOS_FUTUROS = 'COMPENSACAO_PAGAMENTOS_FUTUROS',
+}
+
 export interface Devolucao {
   id: string;
   rncId: string;
@@ -18,7 +23,7 @@ export interface Devolucao {
   motivo: string;
   transportadora: string;
   frete: string;
-  meioCompensacao: string;
+  meioCompensacao: MeioCompensacao;
   nfeNumero: string | null;
   nfePdfPath: string | null;
   nfeEmitidaPorId: string | null;
@@ -28,6 +33,7 @@ export interface Devolucao {
   dataRecebimento: string | null;
   recebimentoConfirmadoPorId: string | null;
   dataCompensacao: string | null;
+  comprovantePath: string | null;
   compensacaoConfirmadaPorId: string | null;
   status: DevolucaoStatus;
   criadoPorId: string;
@@ -69,7 +75,7 @@ export interface CreateDevolucaoDto {
   motivo: string;
   transportadora: string;
   frete: string;
-  meioCompensacao: string;
+  meioCompensacao: MeioCompensacao;
 }
 
 export interface EmitirNfeDto {

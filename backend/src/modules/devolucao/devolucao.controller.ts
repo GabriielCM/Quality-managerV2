@@ -123,10 +123,50 @@ export class DevolucaoController {
 
   @Post(':id/confirmar-compensacao')
   @Permissions('devolucao.confirmar_compensacao', 'admin.all')
+  @UseInterceptors(
+    FileInterceptor('comprovante', {
+      storage: diskStorage({
+        destination: process.env.UPLOAD_PATH || './uploads',
+        filename: (req, file, cb) => {
+          const uniqueName = `comprovante-compensacao-${uuidv4()}.${file.originalname.split('.').pop()}`;
+          cb(null, uniqueName);
+        },
+      }),
+      fileFilter: (req, file, cb) => {
+        const allowedMimes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+        if (allowedMimes.includes(file.mimetype)) {
+          cb(null, true);
+        } else {
+          cb(
+            new BadRequestException(
+              'Apenas arquivos PDF ou imagens (JPG, PNG) são permitidos',
+            ),
+            false,
+          );
+        }
+      },
+      limits: {
+        fileSize: parseInt(process.env.MAX_FILE_SIZE || '10485760'), // 10MB
+      },
+    }),
+  )
+  @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Etapa 4: Confirmar compensação fiscal (finaliza)' })
-  confirmarCompensacao(@Param('id') id: string, @Request() req) {
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        comprovante: { type: 'string', format: 'binary' },
+      },
+    },
+  })
+  confirmarCompensacao(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Request() req,
+  ) {
     const userId = req.user?.userId;
-    return this.devolucaoService.confirmarCompensacao(id, userId);
+    return this.devolucaoService.confirmarCompensacao(id, file, userId);
   }
 
   @Get(':id/nfe-pdf')
@@ -134,6 +174,14 @@ export class DevolucaoController {
   @ApiOperation({ summary: 'Download do PDF da NF-e de devolução' })
   async downloadNfePdf(@Param('id') id: string, @Res() res: Response) {
     const filepath = await this.devolucaoService.downloadNfePdf(id);
+    return res.sendFile(filepath, { root: '.' });
+  }
+
+  @Get(':id/comprovante')
+  @Permissions('devolucao.read', 'admin.all')
+  @ApiOperation({ summary: 'Download do comprovante de compensação' })
+  async downloadComprovante(@Param('id') id: string, @Res() res: Response) {
+    const filepath = await this.devolucaoService.downloadComprovante(id);
     return res.sendFile(filepath, { root: '.' });
   }
 
