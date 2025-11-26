@@ -1,6 +1,6 @@
 # Novos Agentes Especializados para Q-Manager
 
-Este documento contém propostas de novos agentes especializados que podem ser implementados no Q-Manager para automatizar tarefas complexas e melhorar a eficiência do desenvolvimento.
+Este documento contï¿½m propostas de novos agentes especializados que podem ser implementados no Q-Manager para automatizar tarefas complexas e melhorar a eficiï¿½ncia do desenvolvimento.
 
 ---
 
@@ -10,48 +10,48 @@ Este documento contém propostas de novos agentes especializados que podem ser im
 `workflow-manager`
 
 ### Objetivo
-Gerenciar e automatizar workflows complexos que envolvem múltiplos módulos e etapas sequenciais, como o fluxo INC ’ RNC ’ Devolução.
+Gerenciar e automatizar workflows complexos que envolvem mï¿½ltiplos mï¿½dulos e etapas sequenciais, como o fluxo INC ï¿½ RNC ï¿½ Devoluï¿½ï¿½o.
 
 ### Responsabilidades
 - Analisar fluxos de trabalho existentes
 - Criar novos workflows multi-etapa
-- Validar transições de estado
-- Implementar lógica de validação entre etapas
+- Validar transiï¿½ï¿½es de estado
+- Implementar lï¿½gica de validaï¿½ï¿½o entre etapas
 - Gerar testes para workflows completos
 - Documentar fluxos de trabalho
 
 ### Quando Usar
-- Ao criar novos processos que envolvem múltiplos módulos
-- Quando precisar modificar workflows existentes (INC’RNC’Devolução)
-- Para validar que todas as transições de estado estão corretas
+- Ao criar novos processos que envolvem mï¿½ltiplos mï¿½dulos
+- Quando precisar modificar workflows existentes (INCï¿½RNCï¿½Devoluï¿½ï¿½o)
+- Para validar que todas as transiï¿½ï¿½es de estado estï¿½o corretas
 - Ao adicionar novas etapas em processos existentes
-- Para gerar documentação de workflows
+- Para gerar documentaï¿½ï¿½o de workflows
 
 ### Inputs
-- Descrição do workflow (módulos envolvidos, etapas, status)
-- Regras de negócio (validações, condições)
-- Pontos de integração entre módulos
-- Estados possíveis e transições permitidas
+- Descriï¿½ï¿½o do workflow (mï¿½dulos envolvidos, etapas, status)
+- Regras de negï¿½cio (validaï¿½ï¿½es, condiï¿½ï¿½es)
+- Pontos de integraï¿½ï¿½o entre mï¿½dulos
+- Estados possï¿½veis e transiï¿½ï¿½es permitidas
 
 ### Outputs
-- Código para gerenciar transições de estado
-- Validações de negócio implementadas
+- Cï¿½digo para gerenciar transiï¿½ï¿½es de estado
+- Validaï¿½ï¿½es de negï¿½cio implementadas
 - Testes E2E para o workflow completo
 - Diagrama de fluxo atualizado
-- Documentação do processo
+- Documentaï¿½ï¿½o do processo
 
 ### Casos de Uso
 
 **Exemplo 1:**
 ```
-User: "Preciso adicionar uma nova etapa de aprovação financeira entre RNC aceita e criação de devolução"
-Agent: Analisa workflow atual ’ Identifica ponto de inserção ’ Cria nova etapa ’ Atualiza validações ’ Gera testes
+User: "Preciso adicionar uma nova etapa de aprovaï¿½ï¿½o financeira entre RNC aceita e criaï¿½ï¿½o de devoluï¿½ï¿½o"
+Agent: Analisa workflow atual ï¿½ Identifica ponto de inserï¿½ï¿½o ï¿½ Cria nova etapa ï¿½ Atualiza validaï¿½ï¿½es ï¿½ Gera testes
 ```
 
 **Exemplo 2:**
 ```
-User: "O workflow de devolução precisa de uma nova validação: apenas devoluções com peso acima de 100kg precisam de aprovação do gerente"
-Agent: Analisa regra ’ Identifica etapa afetada ’ Implementa validação ’ Atualiza testes ’ Documenta
+User: "O workflow de devoluï¿½ï¿½o precisa de uma nova validaï¿½ï¿½o: apenas devoluï¿½ï¿½es com peso acima de 100kg precisam de aprovaï¿½ï¿½o do gerente"
+Agent: Analisa regra ï¿½ Identifica etapa afetada ï¿½ Implementa validaï¿½ï¿½o ï¿½ Atualiza testes ï¿½ Documenta
 ```
 
 ---
@@ -62,110 +62,58 @@ Agent: Analisa regra ’ Identifica etapa afetada ’ Implementa validação ’ Atualiz
 `database-migrator`
 
 ### Objetivo
-Auxiliar na criação, execução e validação de migrações Prisma, garantindo integridade e consistência do banco de dados.
+Auxiliar na criaï¿½ï¿½o, execuï¿½ï¿½o e validaï¿½ï¿½o de migraï¿½ï¿½es Prisma, garantindo integridade e consistï¿½ncia do banco de dados.
 
 ### Responsabilidades
-- Gerar migrações Prisma a partir de mudanças no schema
-- Validar migrações antes da execução
-- Criar scripts de rollback quando possível
+- Gerar migraï¿½ï¿½es Prisma a partir de mudanï¿½as no schema
+- Validar migraï¿½ï¿½es antes da execuï¿½ï¿½o
+- Criar scripts de rollback quando possï¿½vel
 - Detectar breaking changes e alertar
-- Sugerir índices para performance
+- Sugerir ï¿½ndices para performance
 - Gerar seeds para novos modelos
-- Atualizar documentação de schema
+- Atualizar documentaï¿½ï¿½o de schema
 
 ### Quando Usar
 - Ao adicionar novos campos em modelos existentes
 - Ao criar novos modelos/tabelas
 - Ao modificar relacionamentos
-- Antes de executar migrações em produção
-- Para validar integridade de dados após migração
+- Antes de executar migraï¿½ï¿½es em produï¿½ï¿½o
+- Para validar integridade de dados apï¿½s migraï¿½ï¿½o
 - Ao otimizar schema para performance
 
 ### Inputs
 - Schema Prisma atualizado
-- Descrição das mudanças desejadas
-- Dados de produção (opcional, para validação)
+- Descriï¿½ï¿½o das mudanï¿½as desejadas
+- Dados de produï¿½ï¿½o (opcional, para validaï¿½ï¿½o)
 - Requisitos de performance
 
 ### Outputs
-- Arquivos de migração Prisma
+- Arquivos de migraï¿½ï¿½o Prisma
 - Scripts SQL gerados
-- Scripts de rollback (quando possível)
-- Validações de integridade
-- Sugestões de índices
+- Scripts de rollback (quando possï¿½vel)
+- Validaï¿½ï¿½es de integridade
+- Sugestï¿½es de ï¿½ndices
 - Seeds atualizados
-- Documentação atualizada
+- Documentaï¿½ï¿½o atualizada
 
 ### Casos de Uso
 
 **Exemplo 1:**
 ```
 User: "Preciso adicionar um campo 'observacao' opcional na tabela Devolucao"
-Agent: Analisa schema ’ Gera migração ’ Cria rollback ’ Valida integridade ’ Atualiza DTOs
+Agent: Analisa schema ï¿½ Gera migraï¿½ï¿½o ï¿½ Cria rollback ï¿½ Valida integridade ï¿½ Atualiza DTOs
 ```
 
 **Exemplo 2:**
 ```
-User: "Vou executar as migrações em produção. Pode validar?"
-Agent: Analisa migrações pendentes ’ Detecta breaking changes ’ Sugere ordem de execução ’ Gera backup plan
+User: "Vou executar as migraï¿½ï¿½es em produï¿½ï¿½o. Pode validar?"
+Agent: Analisa migraï¿½ï¿½es pendentes ï¿½ Detecta breaking changes ï¿½ Sugere ordem de execuï¿½ï¿½o ï¿½ Gera backup plan
 ```
 
 ---
 
-## 3. Permission Auditor Agent
 
-### Nome
-`permission-auditor`
 
-### Objetivo
-Auditar e gerenciar o sistema de permissões RBAC, identificando lacunas de segurança e inconsistências.
-
-### Responsabilidades
-- Auditar endpoints sem proteção adequada
-- Identificar permissões órfãs (não usadas)
-- Detectar endpoints sem documentação de permissões
-- Validar consistência entre backend e frontend
-- Sugerir permissões granulares para novos módulos
-- Gerar relatórios de auditoria
-- Criar testes de autorização
-
-### Quando Usar
-- Antes de releases de produção
-- Ao adicionar novos endpoints
-- Para auditorias de segurança
-- Quando detectar problemas de autorização
-- Para validar que permissões estão corretas
-- Ao refatorar sistema de permissões
-
-### Inputs
-- Controladores backend (endpoints)
-- Guards e decoradores aplicados
-- Permissões definidas no seed
-- Componentes frontend com verificações
-
-### Outputs
-- Relatório de auditoria completo
-- Lista de endpoints desprotegidos
-- Permissões órfãs
-- Inconsistências backend/frontend
-- Sugestões de melhorias
-- Testes de autorização gerados
-
-### Casos de Uso
-
-**Exemplo 1:**
-```
-User: "Preciso de um relatório de segurança antes do deploy"
-Agent: Escaneia todos os endpoints ’ Identifica 3 endpoints sem guards ’ Encontra 2 permissões não usadas ’ Gera relatório
-```
-
-**Exemplo 2:**
-```
-User: "Acabei de adicionar 5 novos endpoints no módulo devolucao"
-Agent: Analisa endpoints ’ Verifica guards ’ Valida permissões no seed ’ Testa frontend ’ Confirma consistência
-```
-
----
 
 ## 4. Notification Manager Agent
 
@@ -173,30 +121,30 @@ Agent: Analisa endpoints ’ Verifica guards ’ Valida permissões no seed ’ Testa f
 `notification-manager`
 
 ### Objetivo
-Configurar, testar e gerenciar o sistema de notificações, incluindo criação de novos tipos e validação de triggers.
+Configurar, testar e gerenciar o sistema de notificaï¿½ï¿½es, incluindo criaï¿½ï¿½o de novos tipos e validaï¿½ï¿½o de triggers.
 
 ### Responsabilidades
-- Criar novos tipos de notificação
-- Configurar triggers automáticos
-- Implementar runners para notificações agendadas
-- Testar sistema de deduplicação
-- Validar preferências de usuário
-- Gerar templates de notificação
-- Documentar sistema de notificações
+- Criar novos tipos de notificaï¿½ï¿½o
+- Configurar triggers automï¿½ticos
+- Implementar runners para notificaï¿½ï¿½es agendadas
+- Testar sistema de deduplicaï¿½ï¿½o
+- Validar preferï¿½ncias de usuï¿½rio
+- Gerar templates de notificaï¿½ï¿½o
+- Documentar sistema de notificaï¿½ï¿½es
 
 ### Quando Usar
-- Ao adicionar novos tipos de notificação
-- Para configurar notificações de novos módulos
-- Ao modificar lógica de triggers
-- Para testar sistema de notificações
-- Ao debugar problemas de notificações duplicadas
+- Ao adicionar novos tipos de notificaï¿½ï¿½o
+- Para configurar notificaï¿½ï¿½es de novos mï¿½dulos
+- Ao modificar lï¿½gica de triggers
+- Para testar sistema de notificaï¿½ï¿½es
+- Ao debugar problemas de notificaï¿½ï¿½es duplicadas
 - Para otimizar performance do sistema
 
 ### Inputs
-- Tipo de notificação desejado
-- Condições de trigger (prazo, evento, etc.)
-- Módulo relacionado
-- Urgência e canal
+- Tipo de notificaï¿½ï¿½o desejado
+- Condiï¿½ï¿½es de trigger (prazo, evento, etc.)
+- Mï¿½dulo relacionado
+- Urgï¿½ncia e canal
 - Template de mensagem
 
 ### Outputs
@@ -204,21 +152,21 @@ Configurar, testar e gerenciar o sistema de notificações, incluindo criação de n
 - NotificationModule implementado
 - Runner configurado (se agendado)
 - Testes de trigger
-- Validação de deduplicação
-- Documentação atualizada
+- Validaï¿½ï¿½o de deduplicaï¿½ï¿½o
+- Documentaï¿½ï¿½o atualizada
 
 ### Casos de Uso
 
 **Exemplo 1:**
 ```
-User: "Preciso de uma notificação quando uma devolução ficar 3 dias sem atualização na etapa de NF-e"
-Agent: Cria tipo ’ Implementa runner ’ Configura trigger ’ Testa deduplicação ’ Documenta
+User: "Preciso de uma notificaï¿½ï¿½o quando uma devoluï¿½ï¿½o ficar 3 dias sem atualizaï¿½ï¿½o na etapa de NF-e"
+Agent: Cria tipo ï¿½ Implementa runner ï¿½ Configura trigger ï¿½ Testa deduplicaï¿½ï¿½o ï¿½ Documenta
 ```
 
 **Exemplo 2:**
 ```
-User: "As notificações de RNC estão duplicando"
-Agent: Analisa uniqueKey ’ Identifica problema ’ Corrige lógica ’ Adiciona teste de regressão
+User: "As notificaï¿½ï¿½es de RNC estï¿½o duplicando"
+Agent: Analisa uniqueKey ï¿½ Identifica problema ï¿½ Corrige lï¿½gica ï¿½ Adiciona teste de regressï¿½o
 ```
 
 ---
@@ -229,50 +177,50 @@ Agent: Analisa uniqueKey ’ Identifica problema ’ Corrige lógica ’ Adiciona teste
 `data-seeder`
 
 ### Objetivo
-Gerar e gerenciar dados de seed para testes, desenvolvimento e demonstrações, mantendo consistência e realismo.
+Gerar e gerenciar dados de seed para testes, desenvolvimento e demonstraï¿½ï¿½es, mantendo consistï¿½ncia e realismo.
 
 ### Responsabilidades
-- Criar seeds realistas para todos os módulos
-- Manter consistência de relacionamentos
-- Gerar dados de teste para cenários específicos
+- Criar seeds realistas para todos os mï¿½dulos
+- Manter consistï¿½ncia de relacionamentos
+- Gerar dados de teste para cenï¿½rios especï¿½ficos
 - Criar fixtures para testes E2E
-- Documentar seeds disponíveis
+- Documentar seeds disponï¿½veis
 - Validar integridade referencial
 
 ### Quando Usar
-- Ao criar novos módulos que precisam de dados de exemplo
+- Ao criar novos mï¿½dulos que precisam de dados de exemplo
 - Para popular banco de desenvolvimento
-- Para criar cenários de teste específicos
+- Para criar cenï¿½rios de teste especï¿½ficos
 - Ao preparar demos para clientes
 - Para testes de performance com volumes realistas
 - Ao resetar banco de desenvolvimento
 
 ### Inputs
-- Módulos a serem populados
+- Mï¿½dulos a serem populados
 - Volume de dados desejado
 - Relacionamentos a serem criados
-- Cenários específicos (opcional)
-- Constraints de negócio
+- Cenï¿½rios especï¿½ficos (opcional)
+- Constraints de negï¿½cio
 
 ### Outputs
 - Arquivos de seed Prisma
 - Fixtures para testes
-- Scripts de população
-- Documentação de dados gerados
-- Validações de integridade
+- Scripts de populaï¿½ï¿½o
+- Documentaï¿½ï¿½o de dados gerados
+- Validaï¿½ï¿½es de integridade
 
 ### Casos de Uso
 
 **Exemplo 1:**
 ```
-User: "Preciso de 100 INCs de teste com distribuição realista de status"
-Agent: Gera fornecedores ’ Cria INCs variadas ’ Distribui status ’ Cria RNCs para algumas ’ Valida relações
+User: "Preciso de 100 INCs de teste com distribuiï¿½ï¿½o realista de status"
+Agent: Gera fornecedores ï¿½ Cria INCs variadas ï¿½ Distribui status ï¿½ Cria RNCs para algumas ï¿½ Valida relaï¿½ï¿½es
 ```
 
 **Exemplo 2:**
 ```
-User: "Quero testar o workflow completo de devolução. Preciso de dados de exemplo."
-Agent: Cria INC ’ Gera RNC aceita ’ Cria devolução em etapa 2 ’ Documenta cenário
+User: "Quero testar o workflow completo de devoluï¿½ï¿½o. Preciso de dados de exemplo."
+Agent: Cria INC ï¿½ Gera RNC aceita ï¿½ Cria devoluï¿½ï¿½o em etapa 2 ï¿½ Documenta cenï¿½rio
 ```
 
 ---
@@ -283,52 +231,52 @@ Agent: Cria INC ’ Gera RNC aceita ’ Cria devolução em etapa 2 ’ Documenta cenári
 `performance-optimizer`
 
 ### Objetivo
-Analisar e otimizar performance da aplicação, identificando gargalos e sugerindo melhorias.
+Analisar e otimizar performance da aplicaï¿½ï¿½o, identificando gargalos e sugerindo melhorias.
 
 ### Responsabilidades
 - Analisar queries N+1 em Prisma
-- Sugerir índices de banco de dados
+- Sugerir ï¿½ndices de banco de dados
 - Identificar componentes React pesados
 - Otimizar bundling do frontend
-- Sugerir caching estratégico
-- Analisar uso de memória
-- Gerar relatórios de performance
+- Sugerir caching estratï¿½gico
+- Analisar uso de memï¿½ria
+- Gerar relatï¿½rios de performance
 
 ### Quando Usar
-- Quando a aplicação estiver lenta
-- Antes de releases de produção
+- Quando a aplicaï¿½ï¿½o estiver lenta
+- Antes de releases de produï¿½ï¿½o
 - Para auditorias de performance
 - Ao adicionar grandes volumes de dados
-- Para otimizar queries específicas
+- Para otimizar queries especï¿½ficas
 - Ao refatorar componentes complexos
 
 ### Inputs
-- Código backend (services)
+- Cï¿½digo backend (services)
 - Componentes frontend
 - Logs de queries
-- Métricas de performance
+- Mï¿½tricas de performance
 - Volume de dados esperado
 
 ### Outputs
-- Relatório de performance
+- Relatï¿½rio de performance
 - Queries otimizadas
-- Índices sugeridos
+- ï¿½ndices sugeridos
 - Componentes refatorados
-- Estratégias de caching
+- Estratï¿½gias de caching
 - Benchmarks antes/depois
 
 ### Casos de Uso
 
 **Exemplo 1:**
 ```
-User: "A listagem de RNCs está muito lenta com 1000+ registros"
-Agent: Analisa query ’ Identifica N+1 ’ Adiciona include otimizado ’ Sugere índice ’ Implementa paginação
+User: "A listagem de RNCs estï¿½ muito lenta com 1000+ registros"
+Agent: Analisa query ï¿½ Identifica N+1 ï¿½ Adiciona include otimizado ï¿½ Sugere ï¿½ndice ï¿½ Implementa paginaï¿½ï¿½o
 ```
 
 **Exemplo 2:**
 ```
 User: "O dashboard demora 5 segundos para carregar"
-Agent: Analisa componentes ’ Identifica renders desnecessários ’ Implementa memoization ’ Adiciona lazy loading
+Agent: Analisa componentes ï¿½ Identifica renders desnecessï¿½rios ï¿½ Implementa memoization ï¿½ Adiciona lazy loading
 ```
 
 ---
@@ -339,57 +287,57 @@ Agent: Analisa componentes ’ Identifica renders desnecessários ’ Implementa memo
 `code-reviewer`
 
 ### Objetivo
-Revisar código seguindo padrões do Q-Manager, identificando problemas de qualidade, segurança e performance.
+Revisar cï¿½digo seguindo padrï¿½es do Q-Manager, identificando problemas de qualidade, seguranï¿½a e performance.
 
 ### Responsabilidades
-- Revisar código seguindo style guide do projeto
+- Revisar cï¿½digo seguindo style guide do projeto
 - Identificar code smells e anti-patterns
 - Validar tipagem TypeScript
 - Verificar tratamento de erros
-- Identificar vulnerabilidades de segurança
+- Identificar vulnerabilidades de seguranï¿½a
 - Sugerir melhorias de legibilidade
 - Validar testes adequados
 
 ### Quando Usar
 - Antes de commits importantes
 - Para revisar Pull Requests
-- Ao refatorar código legado
-- Para validar código de terceiros
+- Ao refatorar cï¿½digo legado
+- Para validar cï¿½digo de terceiros
 - Antes de releases
 - Para auditorias de qualidade
 
 ### Inputs
 - Arquivos modificados
-- Diff de mudanças
-- Contexto do módulo
-- Requisitos de negócio
+- Diff de mudanï¿½as
+- Contexto do mï¿½dulo
+- Requisitos de negï¿½cio
 
 ### Outputs
 - Lista de problemas encontrados
-- Sugestões de melhorias
+- Sugestï¿½es de melhorias
 - Code snippets corrigidos
-- Classificação por severidade
+- Classificaï¿½ï¿½o por severidade
 - Checklist de qualidade
 
 ### Casos de Uso
 
 **Exemplo 1:**
 ```
-User: "Pode revisar meu service de devolução?"
-Agent: Analisa código ’ Identifica falta de try/catch ’ Detecta any types ’ Sugere validações adicionais ’ Recomenda testes
+User: "Pode revisar meu service de devoluï¿½ï¿½o?"
+Agent: Analisa cï¿½digo ï¿½ Identifica falta de try/catch ï¿½ Detecta any types ï¿½ Sugere validaï¿½ï¿½es adicionais ï¿½ Recomenda testes
 ```
 
 **Exemplo 2:**
 ```
 User: "Vou fazer merge dessa PR. Pode revisar?"
-Agent: Analisa diff ’ Valida que guards estão aplicados ’ Verifica DTOs ’ Confirma testes existem ’ Aprova
+Agent: Analisa diff ï¿½ Valida que guards estï¿½o aplicados ï¿½ Verifica DTOs ï¿½ Confirma testes existem ï¿½ Aprova
 ```
 
 ---
 
-## Implementação Recomendada
+## Implementaï¿½ï¿½o Recomendada
 
-Para implementar esses agentes, recomenda-se criar arquivos `.md` na pasta `.claude/agents/` seguindo o padrão dos agentes existentes:
+Para implementar esses agentes, recomenda-se criar arquivos `.md` na pasta `.claude/agents/` seguindo o padrï¿½o dos agentes existentes:
 
 1. Copiar estrutura dos agentes existentes (frontmatter YAML)
 2. Definir `name`, `description`, `model`, e `color`
@@ -397,15 +345,15 @@ Para implementar esses agentes, recomenda-se criar arquivos `.md` na pasta `.cla
 4. Adicionar exemplos claros de uso
 5. Documentar no CLAUDE.md quando e como usar cada agente
 
-## Priorização de Implementação
+## Priorizaï¿½ï¿½o de Implementaï¿½ï¿½o
 
 **Alta Prioridade:**
-1. **workflow-manager** - Crítico para manter consistência dos fluxos complexos
-2. **permission-auditor** - Essencial para segurança
-3. **database-migrator** - Reduz erros em migrações
+1. **workflow-manager** - Crï¿½tico para manter consistï¿½ncia dos fluxos complexos
+2. **permission-auditor** - Essencial para seguranï¿½a
+3. **database-migrator** - Reduz erros em migraï¿½ï¿½es
 
-**Média Prioridade:**
-4. **notification-manager** - Útil para expandir sistema de notificações
+**Mï¿½dia Prioridade:**
+4. **notification-manager** - ï¿½til para expandir sistema de notificaï¿½ï¿½es
 5. **performance-optimizer** - Importante conforme sistema escala
 6. **code-reviewer** - Melhora qualidade geral
 
@@ -414,16 +362,16 @@ Para implementar esses agentes, recomenda-se criar arquivos `.md` na pasta `.cla
 
 ---
 
-## Integração com Agentes Existentes
+## Integraï¿½ï¿½o com Agentes Existentes
 
 Esses novos agentes complementam os existentes:
 
-- **module-generator** ’ Usa **permission-auditor** para validar permissões
-- **test-generator** ’ Usa **workflow-manager** para gerar testes de workflows
-- **api-documenter** ’ Usa **permission-auditor** para documentar autorizações
-- **database-migrator** ’ Usa **module-generator** para atualizar DTOs
-- **performance-optimizer** ’ Usa **code-reviewer** para validar otimizações
+- **module-generator** ï¿½ Usa **permission-auditor** para validar permissï¿½es
+- **test-generator** ï¿½ Usa **workflow-manager** para gerar testes de workflows
+- **api-documenter** ï¿½ Usa **permission-auditor** para documentar autorizaï¿½ï¿½es
+- **database-migrator** ï¿½ Usa **module-generator** para atualizar DTOs
+- **performance-optimizer** ï¿½ Usa **code-reviewer** para validar otimizaï¿½ï¿½es
 
 ---
 
-Este sistema de agentes especializados forma um ecossistema completo para desenvolvimento, manutenção e otimização do Q-Manager.
+Este sistema de agentes especializados forma um ecossistema completo para desenvolvimento, manutenï¿½ï¿½o e otimizaï¿½ï¿½o do Q-Manager.

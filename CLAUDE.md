@@ -274,7 +274,6 @@ price (float), and stock (integer, default 0)"
 - **Complex workflow?** → See `new-agents.md` for `workflow-manager` proposal
 - **Security audit?** → See `new-agents.md` for `permission-auditor` proposal
 
-**Additional Proposed Agents** (see `new-agents.md` for full details):
 1. `workflow-manager` - Manage INC→RNC→Devolução workflows
 2. `permission-auditor` - Audit RBAC security
 3. `database-migrator` - Assist with Prisma migrations
