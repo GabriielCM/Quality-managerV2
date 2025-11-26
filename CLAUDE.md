@@ -78,6 +78,8 @@ The system uses a granular Role-Based Access Control model:
 - `rnc.approve` - Approve INC by concession
 - `fornecedores.{create|read|update|delete}` - Fornecedores module operations
 - `users.{create|read|update|delete|manage_permissions}` - User management
+- `notifications.{read|manage_types|manage_settings}` - Notifications system
+- `devolucao.{create|read|emitir_nfe|confirmar_coleta|confirmar_recebimento|confirmar_compensacao|delete}` - Devolução workflow
 
 ### Module Structure
 
@@ -119,6 +121,74 @@ The INC module demonstrates the file upload pattern:
 - Content-Type header is set to `multipart/form-data`
 
 **Cleanup**: Deleting an INC or photo should also delete the physical file from `uploads/` directory (see `inc.service.ts`)
+
+## System Workflows
+
+### Complete Flow: INC → RNC → Devolução
+
+The Q-Manager implements a complex workflow that connects three main modules:
+
+**1. INC (Incidência) - Initial Report**
+- User creates INC with status "Em análise"
+- Uploads NF-e (PDF) and photos (images)
+- Records: AR, quantity received, defects, description
+- System notifies responsible users
+
+**2. RNC (Relatório de Não Conformidade) - Non-Conformity Report**
+- Generated from INC in "Em análise" status
+- Two options:
+  - **Aprovar por Concessão**: INC status → "Aprovado por concessão" (END)
+  - **Gerar RNC**: INC status → "RNC enviada" → Continue to step 3
+- RNC gets sequential number (RNC:001/2025)
+- PDF generated automatically
+- 7-day deadline starts
+- System sends notifications (2 days before, 1 day before, overdue)
+- Supplier submits Action Plan (PDF)
+  - **Accept**: RNC status → "RNC aceita" → Continue to step 4
+  - **Reject**: Adds to history, restarts 7-day deadline
+
+**3. Devolução (Return) - Return Process (4 steps)**
+
+Only if RNC is accepted:
+
+**Step 1: Create Request**
+- Status: `DEVOLUCAO_SOLICITADA`
+- Fill: AR origin, quantity, weight, carrier, freight (FOB/CIF), compensation method
+
+**Step 2: Issue NF-e**
+- Upload NF-e PDF
+- Status: `NFE_EMITIDA`
+- Records: issuer and date
+
+**Step 3: Confirm Movement**
+- 3a. Confirm Collection (if CIF freight) → Status: `DEVOLUCAO_COLETADA`
+- 3b. Confirm Receipt → Status: `DEVOLUCAO_RECEBIDA`
+
+**Step 4: Confirm Fiscal Compensation**
+- Upload proof (PDF or image)
+- Status: `FINALIZADO` (END)
+
+### Notifications System
+
+**Purpose**: Automatic notifications for deadlines and critical events
+
+**Components**:
+- `NotificationType`: Template/configuration (e.g., "rnc_prazo_2dias")
+- `UserNotificationSetting`: Per-user preferences
+- `Notification`: Sent instances
+- `NotificationRunner`: Cron job that checks conditions and creates notifications
+
+**Key Features**:
+- Deduplication via `uniqueKey`
+- User preferences (can enable/disable types)
+- Unread counter for UI badge
+- Contextual navigation (links to entities)
+- Urgent flag for critical notifications
+
+**Current Notifications**:
+- RNC deadline 2 days remaining
+- RNC deadline 1 day remaining
+- RNC deadline expired
 
 ## Specialized Agents
 
@@ -194,6 +264,24 @@ price (float), and stock (integer, default 0)"
 ```
 
 **When to use**: After API changes, before releases, for external integrations.
+
+### Agent Selection Guide
+
+**Quick Reference:**
+- **New module needed?** → `module-generator`
+- **Need tests?** → `test-generator`
+- **Need API docs?** → `api-documenter`
+- **Complex workflow?** → See `new-agents.md` for `workflow-manager` proposal
+- **Security audit?** → See `new-agents.md` for `permission-auditor` proposal
+
+**Additional Proposed Agents** (see `new-agents.md` for full details):
+1. `workflow-manager` - Manage INC→RNC→Devolução workflows
+2. `permission-auditor` - Audit RBAC security
+3. `database-migrator` - Assist with Prisma migrations
+4. `notification-manager` - Configure notifications
+5. `performance-optimizer` - Optimize performance
+6. `code-reviewer` - Review code quality
+7. `data-seeder` - Generate test data
 
 ---
 

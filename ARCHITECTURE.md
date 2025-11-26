@@ -209,6 +209,8 @@ Fornecedor {
 - Gerenciamento de reincidências
 - Geração automática de PDF
 - Numeração sequencial por fornecedor/ano
+- Controle de prazos de resposta (7 dias)
+- Histórico de aceites e recusas de planos de ação
 
 **Estrutura:**
 ```typescript
@@ -230,8 +232,10 @@ Rnc {
   // Campos específicos RNC
   reincidente: boolean
   rncAnteriorId: string (opcional)
-  status: string (RNC enviada, Aguardando resposta, Em análise, Concluída)
+  status: string (RNC enviada, Aguardando resposta, Em análise, Concluída, RNC aceita)
   pdfPath: string (filename)
+  planoAcaoPdfPath: string (filename do plano de ação do fornecedor)
+  prazoInicio: DateTime (data de início do prazo de 7 dias)
 
   // Relacionamentos
   incId: string
@@ -242,6 +246,24 @@ Rnc {
   criadoPor: User
   rncAnterior: Rnc (opcional)
   rncsFilhas: Rnc[]
+  historico: RncHistorico[]
+  devolucao: Devolucao (opcional, 1:1)
+}
+
+RncHistorico {
+  id: string
+  rncId: string
+  tipo: string (ACEITE ou RECUSA)
+  data: DateTime
+  pdfPath: string (caminho do PDF anexado)
+  justificativa: string (obrigatória apenas para RECUSA)
+  prazoInicio: DateTime (início do prazo de 7 dias)
+  prazoFim: DateTime (fim do prazo = prazoInicio + 7 dias)
+  criadoPorId: string
+
+  // Relacionamentos
+  rnc: Rnc
+  criadoPor: User
 }
 ```
 
@@ -286,7 +308,276 @@ Rnc {
 - Exibição destacada em vermelho no PDF
 - Lista de RNCs filhas (reincidências posteriores)
 
-## Fluxo de Dados
+### 7. Módulo de Notificações (Notifications)
+
+**Responsabilidades:**
+- Gerenciamento de notificações do sistema
+- Configuração de tipos de notificação
+- Preferências de notificação por usuário
+- Prevenção de duplicatas
+- Notificações de prazos e eventos críticos
+
+**Estrutura:**
+```typescript
+NotificationType {
+  id: string
+  codigo: string (unique - ex: "rnc_prazo_2dias", "rnc_prazo_1dia")
+  nome: string (ex: "RNC - Prazo 2 Dias")
+  descricao: string
+  modulo: string (ex: "rnc", "inc", "devolucao")
+  canal: string (default: "sistema", futuro: "email")
+  ativo: boolean (admin pode desativar globalmente)
+
+  // Relacionamentos
+  userSettings: UserNotificationSetting[]
+  notifications: Notification[]
+}
+
+UserNotificationSetting {
+  id: string
+  userId: string
+  notificationTypeId: string
+  habilitado: boolean (default: true)
+
+  // Relacionamentos
+  user: User
+  notificationType: NotificationType
+}
+
+Notification {
+  id: string
+  notificationTypeId: string
+  userId: string
+  titulo: string
+  mensagem: string
+  urgente: boolean (default: false)
+  lida: boolean (default: false)
+  dataLeitura: DateTime (opcional)
+
+  // Contexto para navegação
+  entityType: string (ex: "rnc", "inc")
+  entityId: string
+
+  // Prevenção de duplicatas
+  uniqueKey: string (unique - formato: {codigo}_{entityId}_{timestamp})
+
+  // Relacionamentos
+  notificationType: NotificationType
+  user: User
+}
+```
+
+**Funcionalidades:**
+- Notificações automáticas de prazos de RNC (2 dias, 1 dia, vencido)
+- Sistema de deduplicação via uniqueKey
+- Configuração por usuário de quais notificações receber
+- Contador de notificações não lidas
+- Navegação contextual para entidades relacionadas
+- Suporte a notificações urgentes
+
+**Permissões:**
+- `notifications.read` - Ver notificações
+- `notifications.manage_types` - Gerenciar tipos (admin)
+- `notifications.manage_settings` - Configurar preferências de usuários (admin)
+
+### 8. Módulo de Devolução (Devolucao)
+
+**Responsabilidades:**
+- Gerenciamento do processo de devolução de mercadorias
+- Workflow em 4 etapas
+- Upload de documentos (NF-e, comprovantes)
+- Controle de status e rastreamento
+- Compensação fiscal
+
+**Estrutura:**
+```typescript
+enum DevolucaoStatus {
+  RNC_ACEITA
+  DEVOLUCAO_SOLICITADA
+  NFE_EMITIDA
+  DEVOLUCAO_COLETADA
+  DEVOLUCAO_RECEBIDA
+  FINALIZADO
+}
+
+enum MeioCompensacao {
+  TRANSFERENCIA_DIRETA
+  COMPENSACAO_PAGAMENTOS_FUTUROS
+}
+
+Devolucao {
+  id: string
+  rncId: string (unique - relacionamento 1:1 com RNC)
+
+  // Etapa 1 - Solicitação de Faturamento
+  arOrigem: number
+  quantidadeTotal: number
+  pesoKg: number
+  motivo: string
+  transportadora: string
+  frete: string (FOB ou CIF)
+  meioCompensacao: MeioCompensacao
+
+  // Etapa 2 - Emissão da NF-e
+  nfeNumero: string (opcional)
+  nfePdfPath: string (opcional)
+  nfeEmitidaPorId: string (opcional)
+  nfeEmitidaEm: DateTime (opcional)
+
+  // Etapa 3a - Confirmação de Coleta
+  dataColeta: DateTime (opcional)
+  coletaConfirmadaPorId: string (opcional)
+
+  // Etapa 3b - Confirmação de Recebimento
+  dataRecebimento: DateTime (opcional)
+  recebimentoConfirmadoPorId: string (opcional)
+
+  // Etapa 4 - Compensação Fiscal
+  dataCompensacao: DateTime (opcional)
+  comprovantePath: string (opcional - PDF ou imagem)
+  compensacaoConfirmadaPorId: string (opcional)
+
+  // Controle
+  status: DevolucaoStatus (default: RNC_ACEITA)
+  criadoPorId: string
+
+  // Relacionamentos
+  rnc: Rnc
+  criadoPor: User
+  nfeEmitidaPor: User (opcional)
+  coletaConfirmadaPor: User (opcional)
+  recebimentoConfirmadoPor: User (opcional)
+  compensacaoConfirmadaPor: User (opcional)
+}
+```
+
+**Workflow de Devolução:**
+```
+1. Criar Solicitação (a partir de RNC aceita)
+   - Preencher dados: AR origem, quantidade, peso, transportadora, frete, compensação
+   - Status: DEVOLUCAO_SOLICITADA
+
+2. Emitir NF-e
+   - Upload do PDF da NF-e
+   - Informar número da NF-e
+   - Registrar usuário e data de emissão
+   - Status: NFE_EMITIDA
+
+3a. Confirmar Coleta (para frete CIF)
+   - Registrar data de coleta
+   - Registrar usuário confirmante
+   - Status: DEVOLUCAO_COLETADA
+
+3b. Confirmar Recebimento (para frete FOB ou após coleta)
+   - Registrar data de recebimento
+   - Registrar usuário confirmante
+   - Status: DEVOLUCAO_RECEBIDA
+
+4. Confirmar Compensação Fiscal (finaliza)
+   - Upload de comprovante (PDF ou imagem)
+   - Registrar data de compensação
+   - Registrar usuário confirmante
+   - Status: FINALIZADO
+```
+
+**Validações:**
+- Apenas RNCs com status "RNC aceita" podem gerar devoluções
+- Relacionamento 1:1 entre RNC e Devolução (uma RNC pode ter no máximo uma devolução)
+- Workflow sequencial: cada etapa só pode ser executada após a anterior
+- Uploads de arquivos validados (PDF para NF-e, PDF/JPG/PNG para comprovante)
+
+**Permissões:**
+- `devolucao.create` - Criar solicitação de devolução
+- `devolucao.read` - Visualizar devoluções
+- `devolucao.emitir_nfe` - Emitir NF-e (etapa 2)
+- `devolucao.confirmar_coleta` - Confirmar coleta (etapa 3a)
+- `devolucao.confirmar_recebimento` - Confirmar recebimento (etapa 3b)
+- `devolucao.confirmar_compensacao` - Confirmar compensação (etapa 4)
+- `devolucao.delete` - Deletar devolução
+
+## Fluxos Principais do Sistema
+
+### Fluxo Completo: INC → RNC → Devolução
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        CICLO COMPLETO                               │
+└─────────────────────────────────────────────────────────────────────┘
+
+1. CRIAÇÃO DE INC
+   Usuario cria INC → Status: "Em análise"
+   - Upload NF-e (PDF)
+   - Upload Fotos (Imagens)
+   - Dados: AR, quantidade, defeitos
+   - Sistema notifica responsáveis
+
+2. ANÁLISE DA INC
+   Opção A: Aprovar por Concessão
+     → INC Status: "Aprovado por concessão"
+     → FIM DO FLUXO
+
+   Opção B: Gerar RNC
+     → INC Status: "RNC enviada"
+     → Avança para etapa 3
+
+3. PROCESSAMENTO DA RNC
+   RNC criada → Status: "RNC enviada"
+   - Número gerado: RNC:XXX/YYYY
+   - PDF gerado automaticamente
+   - Prazo iniciado: 7 dias
+   - Sistema notifica responsáveis (2 dias antes, 1 dia antes, vencido)
+
+   Fornecedor envia Plano de Ação:
+     → Aceitar Plano → Status: "RNC aceita" → Avança para etapa 4
+     → Recusar Plano → Adiciona ao histórico, reinicia prazo de 7 dias
+
+4. PROCESSO DE DEVOLUÇÃO (se RNC aceita)
+
+   Etapa 1: Criar Solicitação
+     → Status: "DEVOLUCAO_SOLICITADA"
+     → Dados: AR origem, quantidade, peso, transportadora, frete, compensação
+
+   Etapa 2: Emitir NF-e
+     → Upload PDF da NF-e
+     → Status: "NFE_EMITIDA"
+     → Sistema registra emissor e data
+
+   Etapa 3: Confirmação de Movimentação
+     3a. Confirmar Coleta (se frete CIF)
+       → Status: "DEVOLUCAO_COLETADA"
+
+     3b. Confirmar Recebimento
+       → Status: "DEVOLUCAO_RECEBIDA"
+
+   Etapa 4: Compensação Fiscal
+     → Upload comprovante (PDF ou imagem)
+     → Status: "FINALIZADO"
+     → FIM DO FLUXO
+```
+
+### Fluxo de Notificações Automáticas
+
+```
+NotificationRunner (Cron Job)
+  ↓
+Verifica RNCs com prazos próximos
+  ↓
+Para cada RNC:
+  - Calcula dias restantes
+  - Verifica se já notificou (uniqueKey)
+  - Consulta preferências do usuário
+  ↓
+Cria Notification se:
+  - 2 dias restantes E usuário habilitou
+  - 1 dia restante E usuário habilitou
+  - Prazo vencido E usuário habilitou
+  ↓
+Notification salva no banco
+  ↓
+Frontend consulta via polling/websocket
+  ↓
+Exibe badge e lista de notificações
+```
 
 ### Criação de INC com Upload
 
@@ -336,6 +627,11 @@ modules/
 │   ├── users.controller.ts
 │   ├── users.service.ts
 │   └── dto/
+├── permissions/
+│   ├── permissions.module.ts
+│   ├── permissions.controller.ts
+│   ├── permissions.service.ts
+│   └── dto/
 ├── inc/
 │   ├── inc.module.ts
 │   ├── inc.controller.ts
@@ -346,10 +642,23 @@ modules/
 │   ├── fornecedores.controller.ts
 │   ├── fornecedores.service.ts
 │   └── dto/
-└── rnc/
-    ├── rnc.module.ts
-    ├── rnc.controller.ts
-    ├── rnc.service.ts
+├── rnc/
+│   ├── rnc.module.ts
+│   ├── rnc.controller.ts
+│   ├── rnc.service.ts
+│   └── dto/
+├── notifications/
+│   ├── notifications.module.ts
+│   ├── notifications.controller.ts
+│   ├── notifications.service.ts
+│   ├── notification-runner.service.ts
+│   ├── dto/
+│   ├── interfaces/
+│   └── modules/ (módulos de notificação específicos)
+└── devolucao/
+    ├── devolucao.module.ts
+    ├── devolucao.controller.ts
+    ├── devolucao.service.ts
     └── dto/
 ```
 
@@ -385,7 +694,8 @@ pages/
 ├── users/
 │   ├── UsersPage.tsx
 │   ├── UserModal.tsx
-│   └── PermissionsModal.tsx
+│   ├── PermissionsModal.tsx
+│   └── NotificationSettingsModal.tsx
 ├── inc/
 │   ├── IncListPage.tsx
 │   ├── IncCreatePage.tsx
@@ -397,11 +707,17 @@ pages/
 │   ├── FornecedorEditPage.tsx
 │   ├── FornecedorViewPage.tsx
 │   └── FornecedorForm.tsx
-└── rnc/
-    ├── RncAnalysisPage.tsx
-    ├── RncCreatePage.tsx
-    ├── RncListPage.tsx
-    └── RncViewPage.tsx
+├── rnc/
+│   ├── RncAnalysisPage.tsx
+│   ├── RncCreatePage.tsx
+│   ├── RncListPage.tsx
+│   └── RncViewPage.tsx
+├── notifications/
+│   └── NotificationsPage.tsx
+└── devolucao/
+    ├── DevolucaoListPage.tsx
+    ├── DevolucaoCreatePage.tsx
+    └── DevolucaoViewPage.tsx
 ```
 
 **2. State Management (Zustand)**
@@ -442,40 +758,85 @@ authStore {
 ```prisma
 User ──┬─→ UserPermission ──→ Permission
        ├─→ RefreshToken
+       ├─→ UserNotificationSetting ──→ NotificationType
+       ├─→ Notification ──→ NotificationType
        ├─→ Inc ──┬─→ IncFoto
        │         ├─→ Fornecedor
        │         └─→ Rnc
-       └─→ Rnc ──┬─→ Inc
-                 ├─→ Fornecedor
-                 └─→ RncAnterior (self-relation)
+       ├─→ Rnc ──┬─→ Inc
+       │         ├─→ Fornecedor
+       │         ├─→ RncAnterior (self-relation)
+       │         ├─→ RncHistorico
+       │         └─→ Devolucao (1:1)
+       ├─→ RncHistorico ──→ Rnc
+       └─→ Devolucao ──┬─→ Rnc (1:1)
+                       └─→ User (múltiplas relações: criador, emissor NFe, etc.)
 
 Fornecedor ──┬─→ Inc (1:N)
              └─→ Rnc (1:N)
+
+NotificationType ──┬─→ UserNotificationSetting (1:N)
+                   └─→ Notification (1:N)
 ```
 
-**Relacionamentos:**
+**Relacionamentos Detalhados:**
+
+**User:**
 - User → UserPermission (1:N)
-- Permission → UserPermission (1:N)
 - User → RefreshToken (1:N)
-- User → Inc (1:N)
+- User → UserNotificationSetting (1:N)
+- User → Notification (1:N)
+- User → Inc (1:N, criadoPor)
 - User → Rnc (1:N, criadoPor)
+- User → RncHistorico (1:N, criadoPor)
+- User → Devolucao (1:N cada, criadoPor/nfeEmitidaPor/coletaConfirmadaPor/recebimentoConfirmadoPor/compensacaoConfirmadaPor)
+
+**Permission:**
+- Permission → UserPermission (1:N)
+
+**Inc:**
 - Inc → IncFoto (1:N)
-- Inc → Fornecedor (N:1)
+- Inc → Fornecedor (N:1, obrigatório)
 - Inc → Rnc (1:N)
+- Inc → User (N:1, criadoPor)
+
+**Rnc:**
 - Rnc → Inc (N:1, obrigatório)
 - Rnc → Fornecedor (N:1, obrigatório)
 - Rnc → User (N:1, criadoPor)
 - Rnc → Rnc (self-relation, rncAnterior opcional)
+- Rnc → RncHistorico (1:N)
+- Rnc → Devolucao (1:1, opcional)
+
+**Devolucao:**
+- Devolucao → Rnc (1:1, obrigatório)
+- Devolucao → User (N:1, criadoPor)
+- Devolucao → User (N:1, nfeEmitidaPor, opcional)
+- Devolucao → User (N:1, coletaConfirmadaPor, opcional)
+- Devolucao → User (N:1, recebimentoConfirmadoPor, opcional)
+- Devolucao → User (N:1, compensacaoConfirmadaPor, opcional)
+
+**NotificationType:**
+- NotificationType → UserNotificationSetting (1:N)
+- NotificationType → Notification (1:N)
+
+**Fornecedor:**
 - Fornecedor → Inc (1:N)
 - Fornecedor → Rnc (1:N)
 
 **Índices:**
-- Email (unique)
-- Permission Code (unique)
-- RefreshToken Token (unique)
-- CNPJ (unique)
-- RNC numero (unique)
-- RNC [fornecedorId, sequencial, ano] (unique composite)
+- User.email (unique)
+- Permission.code (unique)
+- RefreshToken.token (unique)
+- Fornecedor.cnpj (unique)
+- Rnc.numero (unique)
+- Rnc.[fornecedorId, sequencial, ano] (unique composite)
+- NotificationType.codigo (unique)
+- UserNotificationSetting.[userId, notificationTypeId] (unique composite)
+- Notification.uniqueKey (unique)
+- Notification.[userId, lida] (index)
+- Notification.createdAt (index)
+- Devolucao.rncId (unique)
 
 ## Segurança
 
