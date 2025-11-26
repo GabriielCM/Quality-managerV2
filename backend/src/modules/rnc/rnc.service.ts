@@ -198,6 +198,11 @@ export class RncService {
             data: true,
           },
         },
+        devolucao: {
+          select: {
+            id: true,
+          },
+        },
       },
       orderBy: {
         createdAt: 'desc',

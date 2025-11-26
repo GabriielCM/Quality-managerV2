@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Download, FileText, Package, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Download, FileText, Package, CheckCircle2, Trash2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { devolucaoApi } from '@/services/api/devolucao';
 import { Devolucao, DevolucaoStatus } from '@/types/devolucao';
@@ -18,6 +18,7 @@ export default function DevolucaoViewPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showEmitirNfeModal, setShowEmitirNfeModal] = useState(false);
   const [showConfirmarCompensacaoModal, setShowConfirmarCompensacaoModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState<{
     action: 'coleta' | 'recebimento' | null;
   }>({ action: null });
@@ -26,6 +27,7 @@ export default function DevolucaoViewPage() {
   const canConfirmarColeta = hasAnyPermission(['devolucao.confirmar_coleta', 'admin.all']);
   const canConfirmarRecebimento = hasAnyPermission(['devolucao.confirmar_recebimento', 'admin.all']);
   const canConfirmarCompensacao = hasAnyPermission(['devolucao.confirmar_compensacao', 'admin.all']);
+  const isAdmin = hasPermission('admin.all');
 
   useEffect(() => {
     if (id) {
@@ -117,6 +119,17 @@ export default function DevolucaoViewPage() {
     await devolucaoApi.emitirNfe(devolucao.id, nfeNumero, file);
     toast.success('NF-e emitida com sucesso');
     loadDevolucao(devolucao.id);
+  };
+
+  const handleDelete = async () => {
+    if (!devolucao) return;
+    try {
+      await devolucaoApi.remove(devolucao.id);
+      toast.success('Devolução excluída com sucesso');
+      navigate('/devolucao');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Erro ao excluir devolução');
+    }
   };
 
   const getStatusColor = (status: DevolucaoStatus) => {
@@ -211,21 +224,33 @@ export default function DevolucaoViewPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center space-x-4">
-        <button
-          onClick={() => navigate('/devolucao')}
-          className="text-gray-600 hover:text-gray-900"
-        >
-          <ArrowLeft className="w-6 h-6" />
-        </button>
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Devolução - RNC {devolucao.rnc?.numero}
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Visualização completa da devolução
-          </p>
+      <div className="flex justify-between items-start">
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => navigate('/devolucao')}
+            className="text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="w-6 h-6" />
+          </button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Devolução - RNC {devolucao.rnc?.numero}
+            </h1>
+            <p className="text-gray-600 mt-1">
+              Visualização completa da devolução
+            </p>
+          </div>
         </div>
+        {isAdmin && (
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            className="btn btn-danger flex items-center space-x-2"
+            title="Excluir devolução (apenas admin)"
+          >
+            <Trash2 className="w-5 h-5" />
+            <span>Excluir</span>
+          </button>
+        )}
       </div>
 
       <TimelineStepper currentStatus={devolucao.status} steps={timelineSteps} />
@@ -592,6 +617,44 @@ export default function DevolucaoViewPage() {
         onSubmit={handleConfirmarCompensacao}
         devolucaoId={devolucao.id}
       />
+
+      {/* Modal de Confirmação de Exclusão */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-lg font-semibold mb-4 text-red-600">
+              Excluir Devolução
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Tem certeza que deseja excluir esta devolução? Esta ação não pode ser desfeita
+              e todos os arquivos associados (NF-e e comprovante) serão permanentemente removidos.
+            </p>
+            <div className="bg-red-50 border border-red-200 p-3 rounded mb-4">
+              <p className="text-sm text-red-700">
+                <strong>Atenção:</strong> A RNC associada não será afetada e poderá ser usada
+                para criar uma nova devolução.
+              </p>
+            </div>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="btn btn-secondary"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  handleDelete();
+                  setShowDeleteModal(false);
+                }}
+                className="btn btn-danger"
+              >
+                Excluir Permanentemente
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

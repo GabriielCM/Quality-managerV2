@@ -62,6 +62,10 @@ export interface Rnc {
     status: string;
   }>;
 
+  devolucao?: {
+    id: string;
+  };
+
   createdAt: string;
   updatedAt: string;
 }

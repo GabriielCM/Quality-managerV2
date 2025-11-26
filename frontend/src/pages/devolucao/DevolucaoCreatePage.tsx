@@ -35,7 +35,9 @@ export default function DevolucaoCreatePage() {
     try {
       setIsLoadingRncs(true);
       const data = await rncApi.findAll({ status: 'RNC aceita' });
-      setRncsAceitas(data);
+      // Filtrar apenas RNCs que ainda não possuem devolução vinculada
+      const rncsSemDevolucao = data.filter((rnc) => !rnc.devolucao);
+      setRncsAceitas(rncsSemDevolucao);
     } catch (error) {
       toast.error('Erro ao carregar RNCs aceitas');
     } finally {
