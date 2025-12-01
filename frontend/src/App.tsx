@@ -21,6 +21,9 @@ import RncViewPage from '@/pages/rnc/RncViewPage';
 import DevolucaoListPage from '@/pages/devolucao/DevolucaoListPage';
 import DevolucaoCreatePage from '@/pages/devolucao/DevolucaoCreatePage';
 import DevolucaoViewPage from '@/pages/devolucao/DevolucaoViewPage';
+import ConsertoListPage from '@/pages/conserto/ConsertoListPage';
+import ConsertoCreatePage from '@/pages/conserto/ConsertoCreatePage';
+import ConsertoViewPage from '@/pages/conserto/ConsertoViewPage';
 import NotificationsPage from '@/pages/notifications/NotificationsPage';
 
 function App() {
@@ -89,6 +92,13 @@ function App() {
             <Route index element={<DevolucaoListPage />} />
             <Route path="create" element={<DevolucaoCreatePage />} />
             <Route path=":id" element={<DevolucaoViewPage />} />
+          </Route>
+
+          {/* Conserto */}
+          <Route path="conserto">
+            <Route index element={<ConsertoListPage />} />
+            <Route path="create" element={<ConsertoCreatePage />} />
+            <Route path=":id" element={<ConsertoViewPage />} />
           </Route>
         </Route>
 

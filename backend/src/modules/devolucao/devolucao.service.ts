@@ -34,14 +34,21 @@ export class DevolucaoService {
     }
   }
 
-  // Helper: Check existing devolução for RNC
-  private async checkExistingDevolucao(rncId: string): Promise<void> {
-    const existing = await this.prisma.devolucao.findUnique({
-      where: { rncId },
+  // Helper: Check existing devolução or conserto for RNC
+  private async checkExistingDevolucaoOrConserto(rncId: string): Promise<void> {
+    const rnc = await this.prisma.rnc.findUnique({
+      where: { id: rncId },
+      include: { devolucao: true, conserto: true },
     });
-    if (existing) {
+
+    if (rnc?.devolucao) {
       throw new ConflictException(
         'Já existe uma devolução cadastrada para esta RNC',
+      );
+    }
+    if (rnc?.conserto) {
+      throw new ConflictException(
+        'RNC já possui Conserto vinculado',
       );
     }
   }
@@ -78,8 +85,8 @@ export class DevolucaoService {
       );
     }
 
-    // Verificar se já existe devolução para esta RNC
-    await this.checkExistingDevolucao(rncId);
+    // Verificar se já existe devolução ou conserto para esta RNC
+    await this.checkExistingDevolucaoOrConserto(rncId);
 
     // Criar devolução
     const devolucao = await this.prisma.devolucao.create({

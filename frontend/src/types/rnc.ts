@@ -66,6 +66,10 @@ export interface Rnc {
     id: string;
   };
 
+  conserto?: {
+    id: string;
+  };
+
   createdAt: string;
   updatedAt: string;
 }

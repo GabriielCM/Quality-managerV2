@@ -2,13 +2,12 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { devolucaoApi } from '@/services/api/devolucao';
+import { consertoApi } from '@/services/api/conserto';
 import { rncApi } from '@/services/api/rnc';
 import { Rnc } from '@/types/rnc';
-import { MeioCompensacao } from '@/types/devolucao';
 import { useAuthStore } from '@/stores/authStore';
 
-export default function DevolucaoCreatePage() {
+export default function ConsertoCreatePage() {
   const navigate = useNavigate();
   const { hasPermission } = useAuthStore();
 
@@ -24,7 +23,7 @@ export default function DevolucaoCreatePage() {
     motivo: '',
     transportadora: '',
     frete: 'FOB',
-    meioCompensacao: '' as MeioCompensacao | '',
+    consertoEmGarantia: false,
   });
 
   useEffect(() => {
@@ -64,7 +63,7 @@ export default function DevolucaoCreatePage() {
         motivo: '',
         transportadora: '',
         frete: 'FOB',
-        meioCompensacao: '',
+        consertoEmGarantia: false,
       });
     }
   };
@@ -87,33 +86,38 @@ export default function DevolucaoCreatePage() {
       return;
     }
 
+    if (formData.frete === 'FOB' && !formData.transportadora) {
+      toast.error('Transportadora é obrigatória quando frete é FOB');
+      return;
+    }
+
     try {
       setIsLoading(true);
-      await devolucaoApi.create({
+      await consertoApi.create({
         rncId: formData.rncId,
         quantidadeTotal: parseFloat(formData.quantidadeTotal),
         pesoKg: parseFloat(formData.pesoKg),
         motivo: formData.motivo,
-        transportadora: formData.transportadora,
         frete: formData.frete,
-        meioCompensacao: formData.meioCompensacao,
+        transportadora: formData.frete === 'FOB' ? formData.transportadora : undefined,
+        consertoEmGarantia: formData.consertoEmGarantia,
       });
 
-      toast.success('Devolução criada com sucesso');
-      navigate('/devolucao');
+      toast.success('Conserto criado com sucesso');
+      navigate('/conserto');
     } catch (error: any) {
       toast.error(
-        error.response?.data?.message || 'Erro ao criar devolução',
+        error.response?.data?.message || 'Erro ao criar conserto',
       );
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (!hasPermission('devolucao.create')) {
+  if (!hasPermission('conserto.create')) {
     return (
       <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-        Você não tem permissão para criar devoluções.
+        Você não tem permissão para criar consertos.
       </div>
     );
   }
@@ -122,15 +126,15 @@ export default function DevolucaoCreatePage() {
     <div className="space-y-6">
       <div className="flex items-center space-x-4">
         <button
-          onClick={() => navigate('/devolucao')}
+          onClick={() => navigate('/conserto')}
           className="text-gray-600 hover:text-gray-900"
         >
           <ArrowLeft className="w-6 h-6" />
         </button>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Nova Devolução</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Novo Conserto</h1>
           <p className="text-gray-600 mt-1">
-            Criar solicitação de devolução a partir de RNC aceita
+            Criar solicitação de conserto a partir de RNC aceita
           </p>
         </div>
       </div>
@@ -150,7 +154,7 @@ export default function DevolucaoCreatePage() {
                 <div className="text-gray-500">Carregando RNCs...</div>
               ) : rncsAceitas.length === 0 ? (
                 <div className="text-yellow-600 bg-yellow-50 border border-yellow-200 p-3 rounded">
-                  Nenhuma RNC com status "RNC aceita" disponível para devolução.
+                  Nenhuma RNC com status "RNC aceita" disponível para conserto.
                 </div>
               ) : (
                 <select
@@ -198,7 +202,7 @@ export default function DevolucaoCreatePage() {
 
                 <div>
                   <label htmlFor="quantidadeTotal" className="label">
-                    Quantidade Total para Devolução <span className="text-red-500">*</span>
+                    Quantidade Total para Conserto <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
@@ -234,7 +238,7 @@ export default function DevolucaoCreatePage() {
 
                 <div>
                   <label htmlFor="motivo" className="label">
-                    Motivo da Devolução <span className="text-red-500">*</span>
+                    Motivo do Conserto <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     id="motivo"
@@ -244,22 +248,6 @@ export default function DevolucaoCreatePage() {
                     }
                     className="input"
                     rows={4}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="transportadora" className="label">
-                    Transportadora <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="transportadora"
-                    value={formData.transportadora}
-                    onChange={(e) =>
-                      setFormData({ ...formData, transportadora: e.target.value })
-                    }
-                    className="input"
                     required
                   />
                 </div>
@@ -298,27 +286,45 @@ export default function DevolucaoCreatePage() {
                   </div>
                 </div>
 
+                {formData.frete === 'FOB' && (
+                  <div>
+                    <label htmlFor="transportadora" className="label">
+                      Transportadora <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="transportadora"
+                      value={formData.transportadora}
+                      onChange={(e) =>
+                        setFormData({ ...formData, transportadora: e.target.value })
+                      }
+                      className="input"
+                      required
+                    />
+                  </div>
+                )}
+
                 <div>
-                  <label htmlFor="meioCompensacao" className="label">
-                    Meio de Compensação <span className="text-red-500">*</span>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.consertoEmGarantia}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          consertoEmGarantia: e.target.checked,
+                        })
+                      }
+                      className="form-checkbox text-sky-500"
+                    />
+                    <span className="label">
+                      Conserto em Garantia (informativo)
+                    </span>
                   </label>
-                  <select
-                    id="meioCompensacao"
-                    value={formData.meioCompensacao}
-                    onChange={(e) =>
-                      setFormData({ ...formData, meioCompensacao: e.target.value as MeioCompensacao })
-                    }
-                    className="input"
-                    required
-                  >
-                    <option value="">Selecione...</option>
-                    <option value={MeioCompensacao.TRANSFERENCIA_DIRETA}>
-                      Transferência Direta
-                    </option>
-                    <option value={MeioCompensacao.COMPENSACAO_PAGAMENTOS_FUTUROS}>
-                      Compensação em Pagamentos Futuros
-                    </option>
-                  </select>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Marque esta opção se o conserto está coberto por garantia. Este
+                    campo é apenas informativo e não afeta o fluxo de trabalho.
+                  </p>
                 </div>
               </>
             )}
@@ -328,7 +334,7 @@ export default function DevolucaoCreatePage() {
         <div className="flex justify-end space-x-4">
           <button
             type="button"
-            onClick={() => navigate('/devolucao')}
+            onClick={() => navigate('/conserto')}
             className="btn btn-secondary"
             disabled={isLoading}
           >
@@ -339,7 +345,7 @@ export default function DevolucaoCreatePage() {
             className="btn btn-primary"
             disabled={isLoading || !selectedRnc}
           >
-            {isLoading ? 'Criando...' : 'Criar Devolução'}
+            {isLoading ? 'Criando...' : 'Criar Conserto'}
           </button>
         </div>
       </form>

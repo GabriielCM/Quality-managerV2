@@ -36,6 +36,17 @@ async function main() {
     { code: 'devolucao.confirmar_compensacao', name: 'Confirmar Compensação', module: 'devolucao', description: 'Permite confirmar compensação fiscal' },
     { code: 'devolucao.delete', name: 'Deletar Devolução', module: 'devolucao', description: 'Permite deletar devoluções' },
 
+    // Permissões de Conserto
+    { code: 'conserto.create', name: 'Criar Conserto', module: 'conserto', description: 'Permite criar solicitações de conserto' },
+    { code: 'conserto.read', name: 'Visualizar Conserto', module: 'conserto', description: 'Permite visualizar consertos' },
+    { code: 'conserto.emitir_nfe', name: 'Emitir NF-e Conserto', module: 'conserto', description: 'Permite emitir nota fiscal eletrônica de conserto' },
+    { code: 'conserto.confirmar_coleta', name: 'Confirmar Coleta', module: 'conserto', description: 'Permite confirmar coleta do material' },
+    { code: 'conserto.confirmar_recebimento', name: 'Confirmar Recebimento', module: 'conserto', description: 'Permite confirmar recebimento do material' },
+    { code: 'conserto.confirmar_retorno', name: 'Confirmar Retorno Material', module: 'conserto', description: 'Permite confirmar retorno do material após conserto' },
+    { code: 'conserto.aprovar_inspecao', name: 'Aprovar Inspeção', module: 'conserto', description: 'Permite aprovar inspeção de material consertado' },
+    { code: 'conserto.rejeitar_inspecao', name: 'Rejeitar Inspeção', module: 'conserto', description: 'Permite rejeitar inspeção de material consertado' },
+    { code: 'conserto.delete', name: 'Deletar Conserto', module: 'conserto', description: 'Permite deletar consertos' },
+
     // Permissões de Usuários
     { code: 'users.create', name: 'Criar Usuário', module: 'users', description: 'Permite criar novos usuários' },
     { code: 'users.read', name: 'Visualizar Usuários', module: 'users', description: 'Permite visualizar usuários' },

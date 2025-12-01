@@ -10,6 +10,7 @@ import { FornecedoresModule } from './modules/fornecedores/fornecedores.module';
 import { RncModule } from './modules/rnc/rnc.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { DevolucaoModule } from './modules/devolucao/devolucao.module';
+import { ConsertoModule } from './modules/conserto/conserto.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { DevolucaoModule } from './modules/devolucao/devolucao.module';
     RncModule,
     NotificationsModule,
     DevolucaoModule,
+    ConsertoModule,
   ],
 })
 export class AppModule {}

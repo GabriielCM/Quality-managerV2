@@ -31,6 +31,12 @@ model User {
   devolucoesColetaConfirmada      Devolucao[] @relation("DevolucaoColetaConfirmadaPor")
   devolucoesRecebimentoConfirmado Devolucao[] @relation("DevolucaoRecebimentoConfirmadaPor")
   devolucoesCompensacaoConfirmada Devolucao[] @relation("DevolucaoCompensacaoConfirmadaPor")
+  consertosCriados                Conserto[] @relation("ConsertoCriadoPor")
+  consertosNfeEmitida             Conserto[] @relation("ConsertoNfeEmitidaPor")
+  consertosColetaConfirmada       Conserto[] @relation("ConsertoColetaConfirmadaPor")
+  consertosRecebimentoConfirmado  Conserto[] @relation("ConsertoRecebimentoConfirmadaPor")
+  consertosRetornoConfirmado      Conserto[] @relation("ConsertoRetornoConfirmadaPor")
+  consertosInspecaoRealizada      Conserto[] @relation("ConsertoInspecaoRealizadaPor")
 
   @@map("users")
 }
@@ -142,6 +148,18 @@ enum MeioCompensacao {
   COMPENSACAO_PAGAMENTOS_FUTUROS
 }
 
+// Enum para status de conserto
+enum ConsertoStatus {
+  RNC_ACEITA
+  CONSERTO_SOLICITADA
+  NFE_EMITIDA
+  CONSERTO_COLETADO
+  CONSERTO_RECEBIDO
+  MATERIAL_RETORNADO
+  FINALIZADO
+  REJEITADO
+}
+
 // Módulo RNC (Relatório de Não Conformidade)
 model Rnc {
   id                       String   @id @default(uuid())
@@ -178,6 +196,7 @@ model Rnc {
   rncsFilhas   Rnc[]       @relation("RncReincidente")
   historico    RncHistorico[]
   devolucao    Devolucao?
+  conserto     Conserto?
 
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
@@ -256,6 +275,79 @@ model Devolucao {
   compensacaoConfirmadaPor User?       @relation("DevolucaoCompensacaoConfirmadaPor", fields: [compensacaoConfirmadaPorId], references: [id])
 
   @@map("devolucoes")
+}
+
+// Módulo de Conserto
+model Conserto {
+  id String @id @default(uuid())
+  rncId String @unique  // Relacionamento 1:1 com RNC
+
+  // Etapa 1 - Solicitação de Conserto
+  arOrigem Int
+  quantidadeTotal Float
+  pesoKg Float
+  motivo String
+  frete String  // "FOB" ou "CIF"
+  transportadora String?  // Obrigatória apenas se FOB
+  consertoEmGarantia Boolean @default(false)  // Campo informativo
+
+  // Etapa 2 - Emissão da NF-e
+  nfeNumero String?
+  nfePdfPath String?
+  nfeEmitidaPorId String?
+  nfeEmitidaEm DateTime?
+
+  // Etapa 3a - Confirmação de Coleta (sempre obrigatória)
+  dataColeta DateTime?
+  coletaConfirmadaPorId String?
+
+  // Etapa 3b - Confirmação de Recebimento (inicia prazo de 30 dias)
+  dataRecebimento DateTime?
+  recebimentoConfirmadoPorId String?
+  prazoConsertoInicio DateTime?  // Data de recebimento
+  prazoConsertoFim DateTime?     // recebimento + 30 dias
+
+  // Etapa 3c - Retorno do Material
+  dataRetorno DateTime?
+  nfeRetornoNumero String?
+  nfeRetornoPdfPath String?
+  retornoConfirmadoPorId String?
+
+  // Etapa 4 - Inspeção
+  inspecaoAprovada Boolean?  // true = aprovada, false = rejeitada
+  inspecaoData DateTime?
+  inspecaoDescricao String?  // Opcional na aprovação, obrigatória na rejeição
+  inspecaoRealizadaPorId String?
+
+  // Controle
+  status ConsertoStatus @default(RNC_ACEITA)
+  criadoPorId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relacionamentos
+  rnc Rnc @relation(fields: [rncId], references: [id], onDelete: Cascade)
+  criadoPor User @relation("ConsertoCriadoPor", fields: [criadoPorId], references: [id])
+  nfeEmitidaPor User? @relation("ConsertoNfeEmitidaPor", fields: [nfeEmitidaPorId], references: [id])
+  coletaConfirmadaPor User? @relation("ConsertoColetaConfirmadaPor", fields: [coletaConfirmadaPorId], references: [id])
+  recebimentoConfirmadoPor User? @relation("ConsertoRecebimentoConfirmadaPor", fields: [recebimentoConfirmadoPorId], references: [id])
+  retornoConfirmadoPor User? @relation("ConsertoRetornoConfirmadaPor", fields: [retornoConfirmadoPorId], references: [id])
+  inspecaoRealizadaPor User? @relation("ConsertoInspecaoRealizadaPor", fields: [inspecaoRealizadaPorId], references: [id])
+  inspecaoFotos ConsertoInspecaoFoto[]
+
+  @@map("consertos")
+}
+
+model ConsertoInspecaoFoto {
+  id String @id @default(uuid())
+  consertoId String
+  path String          // caminho do arquivo
+  filename String      // nome original
+  createdAt DateTime @default(now())
+
+  conserto Conserto @relation(fields: [consertoId], references: [id], onDelete: Cascade)
+
+  @@map("conserto_inspecao_fotos")
 }
 
 // Módulo de Notificações

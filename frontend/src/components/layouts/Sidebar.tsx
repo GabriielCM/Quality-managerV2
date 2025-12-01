@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { useUIStore } from '@/stores/uiStore';
-import { LayoutDashboard, Users, FileText, Building2, X, ChevronLeft, ChevronRight, AlertTriangle, Bell, PackageX } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, Building2, X, ChevronLeft, ChevronRight, AlertTriangle, Bell, PackageX, Wrench } from 'lucide-react';
 import { useState } from 'react';
 import clsx from 'clsx';
 
@@ -40,6 +40,12 @@ export default function Sidebar() {
       href: '/devolucao',
       icon: PackageX,
       permissions: ['devolucao.read', 'admin.all'],
+    },
+    {
+      name: 'Conserto',
+      href: '/conserto',
+      icon: Wrench,
+      permissions: ['conserto.read', 'admin.all'],
     },
     {
       name: 'Fornecedores',
